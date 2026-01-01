@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arrow Block 3D</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-image: url('/bg-green.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      }
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        display: block;
+      }
+
+      /* Top Blue Bar */
+      .header {
+        position: fixed;
+        width: 95%;
+        height: 60px;
+        background-color: #2358a6;
+        margin-top: 10px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0 15px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        color: white;
+        z-index: 10;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .pause-button {
+        /* The outer white ring */
+        width: 44px;
+        height: 44px;
+        background-color: #ffffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        margin-left: 10px;
+      }
+
+      .pause-inner {
+        /* The inner blue-grey circle */
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background-color: #a3a2a2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Inset shadow for the "pressed" look */
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .pause-icon {
+        display: flex;
+        gap: 4px; /* Space between the two bars */
+      }
+
+      .bar {
+        width: 6px;
+        height: 20px;
+        background-color: #ffffff;
+        border-radius: 2px;
+        /* Subtle glow to match the screenshot */
+        box-shadow: 0 1px 2px rgba(102, 102, 102, 0.5);
+      }
+
+      .level-num {
+        flex-grow: 1;
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      .currency-container {
+        background-color: #1a4484;
+        padding: 2px 15px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        min-width: 100px;
+        justify-content: center;
+        position: relative;
+      }
+
+      .cash-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .cash-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .currency-val {
+        font-size: 28px;
+        font-weight: bold;
+      }
+      
+
+      /* Footer Lock Button */
+      .footer {
+        margin-bottom: 40px;
+      }
+
+      .lock-button {
+        position: fixed;
+        bottom: 40px;
+        left: 20%;
+        transform: translateX(-50%);
+        width: 70px;
+        height: 70px;
+        background-color: #e0e0e0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 0px #b0b0b0;
+        border: 4px solid #ffffff;
+        color: #757575;
+        font-size: 28px;
+        cursor: pointer;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top blue bar -->
+    <header class="header">
+      <div class="pause-button">
+        <div class="pause-inner">
+          <div class="pause-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="level-num">2</div>
+
+      <div class="currency-container">
+        <div class="cash-icon"><img src="/dollars.png" alt="Currency"></div>
+        <div class="currency-val">3</div>
+      </div>
+    </header>
+
+    <!-- Bottom lock button -->
+    <div class="lock-button">
+      <i class="fa-solid fa-lock"></i>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
