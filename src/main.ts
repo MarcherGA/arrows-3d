@@ -44,7 +44,7 @@ class Game {
     this.setupGameCallbacks();
 
     // Load first level
-    this.gameManager.loadLevel(Level2);
+    this.gameManager.loadLevel(Level1);
 
     // Start render loop
     this.engine.runRenderLoop(() => {

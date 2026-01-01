@@ -22,100 +22,89 @@ export interface LevelData {
 }
 
 /**
- * Test Level 1: Simple structure to demonstrate game mechanics
+ * Test Level 1: 3x3x3 Grid
  *
- * Structure layout:
- *   [B]
- *    |
- * [L]-[C]-[R]
- *    |
- *   [F]
- *
- * Where:
- * - C = Center block (blocked, can't be removed initially)
- * - L = Left block (points right, towards center - blocked)
- * - R = Right block (points left, away - REMOVABLE)
- * - F = Forward block (points back, towards center - blocked)
- * - B = Back block (points forward, away - REMOVABLE)
+ * Full 3x3x3 grid with blocks at all 27 positions
  */
 export const Level1: LevelData = {
-  name: "Tutorial Level",
+  name: "3x3x3 Grid",
   levelNumber: 1,
   blocks: [
-    // Center block - points up (will be removable last)
-    {
-      position: new Vector3(0, 0, 0),
-      direction: Direction.UP,
-      color: new Color3(0.6, 0.4, 0.3), // Brown
-    },
+    // Layer 0 (y=0) - bottom layer
+    { position: new Vector3(0, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(0, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(0, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
 
-    // Right block - points RIGHT (away from center) - REMOVABLE FIRST
-    {
-      position: new Vector3(2, 0, 0),
-      direction: Direction.RIGHT,
-      color: new Color3(0.4, 0.7, 0.4), // Green
-    },
+    // Layer 1 (y=1) - middle layer
+    { position: new Vector3(0, 1, 0), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 0), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 0), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(0, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 1), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(0, 1, 2), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 2), direction: Direction.BACK, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 2), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
 
-    // Left block - points LEFT (away from center) - REMOVABLE FIRST
-    {
-      position: new Vector3(-2, 0, 0),
-      direction: Direction.LEFT,
-      color: new Color3(0.4, 0.6, 0.8), // Blue
-    },
-
-    // Forward block - points FORWARD (away from center) - REMOVABLE FIRST
-    {
-      position: new Vector3(0, 0, 2),
-      direction: Direction.FORWARD,
-      color: new Color3(0.8, 0.6, 0.4), // Orange
-    },
-
-    // Back block - points BACK (away from center) - REMOVABLE FIRST
-    {
-      position: new Vector3(0, 0, -2),
-      direction: Direction.BACK,
-      color: new Color3(0.7, 0.4, 0.6), // Purple
-    },
+    // Layer 2 (y=2) - top layer
+    { position: new Vector3(0, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(0, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(0, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
   ],
-  cameraDistance: 12,
+  cameraDistance: 15,
 };
 
 /**
  * Test Level 2: Stretched blocks demonstration
+ *
+ * Using grid positions - each grid unit = 1 block + gap
+ * LevelParser will automatically convert to world positions with consistent gaps
  */
 export const Level2: LevelData = {
   name: "Stretched Blocks",
   levelNumber: 2,
   blocks: [
-    // Tall stretched block (1x3x1)
+    // Normal block at grid 0
     {
       position: new Vector3(0, 0, 0),
+      direction: Direction.LEFT,
+      color: new Color3(0.4, 0.8, 0.4),
+    },
+
+    // Tall stretched block (1x3x1) at grid center (1)
+    {
+      position: new Vector3(1, 0, 0),
       direction: Direction.UP,
       color: new Color3(0.6, 0.4, 0.3),
       size: new Vector3(1, 3, 1),
     },
 
-    // Wide stretched block (3x1x1)
+    // Wide stretched block (3x1x1) at grid 2
     {
-      position: new Vector3(4, 0, 0),
+      position: new Vector3(2, 0, 0),
       direction: Direction.LEFT,
       color: new Color3(0.4, 0.6, 0.8),
       size: new Vector3(3, 1, 1),
     },
 
-    // Deep block (1x1x2)
+    // Deep block (1x1x2) - 1 grid unit backward from center
     {
-      position: new Vector3(0, 0, -3),
+      position: new Vector3(1, 0, -1),
       direction: Direction.BACK,
       color: new Color3(0.8, 0.6, 0.4),
       size: new Vector3(1, 1, 2),
-    },
-
-    // Normal block
-    {
-      position: new Vector3(-2, 0, 0),
-      direction: Direction.LEFT,
-      color: new Color3(0.4, 0.8, 0.4),
     },
   ],
   cameraDistance: 15,

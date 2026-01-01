@@ -28,11 +28,12 @@ export const POINTER = {
 } as const;
 
 export const BLOCK = {
-  DEFAULT_SIZE: 1,
-  SCALE_MULTIPLIER: 0.98,
+  DEFAULT_SIZE: 2, // Block spacing size (only used in LevelParser for positioning)
+  SCALE: 1, // Block model scale (used in Block.ts for rendering)
   COLLISION_CHECK_DISTANCE: 15,
   ARROW_SIZE: 2.5,
   ARROW_OFFSET: 1.01,
+  GAP: 0.05, // Gap between block surfaces (in world units)
 } as const;
 
 export const COLORS = {

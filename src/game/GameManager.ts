@@ -4,6 +4,7 @@ import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
 import type { LevelData } from "../levels/Level1";
+import { LevelParser } from "../levels/LevelParser";
 import { CAMERA } from "../constants";
 import { UIManager } from "../ui/UIManager";
 
@@ -56,8 +57,11 @@ export class GameManager {
     // Reset currency to 0 when loading a new level
     this.uiManager.resetCurrency();
 
+    // Process level blocks: convert grid positions to world positions
+    const processedBlocks = LevelParser.processLevelBlocks(levelData.blocks);
+
     // Create blocks from level data
-    for (const blockData of levelData.blocks) {
+    for (const blockData of processedBlocks) {
       const block = new Block(
         this.scene,
         blockData.position,

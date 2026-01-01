@@ -63,7 +63,7 @@ export class Block {
     position: Vector3,
     direction: Direction,
     color?: Color3,
-    size: Vector3 = new Vector3(BLOCK.DEFAULT_SIZE, BLOCK.DEFAULT_SIZE, BLOCK.DEFAULT_SIZE),
+    size: Vector3 = new Vector3(BLOCK.SCALE, BLOCK.SCALE, BLOCK.SCALE),
     parent?: any
   ) {
     this.scene = scene;
@@ -73,7 +73,7 @@ export class Block {
 
     // Create temporary placeholder until model loads
     this.mesh = MeshBuilder.CreateBox("tempBox", { size: 1 }, scene);
-    this.mesh.scaling = size.scale(BLOCK.SCALE_MULTIPLIER);
+    this.mesh.scaling = size.scale(BLOCK.SCALE);
     this.mesh.position = position;
     this.mesh.isVisible = false;
 
@@ -182,7 +182,7 @@ export class Block {
 
     // Create instance
     this.mesh = Block.sharedBeveledBox.createInstance("block");
-    this.mesh.scaling = size.scale(BLOCK.SCALE_MULTIPLIER);
+    this.mesh.scaling = size.scale(BLOCK.SCALE);
     this.mesh.position = position;
 
     // Restore parent
@@ -219,9 +219,9 @@ export class Block {
       "block",
       {
         size: 1,
-        width: size.x * BLOCK.SCALE_MULTIPLIER,
-        height: size.y * BLOCK.SCALE_MULTIPLIER,
-        depth: size.z * BLOCK.SCALE_MULTIPLIER,
+        width: size.x * BLOCK.SCALE,
+        height: size.y * BLOCK.SCALE,
+        depth: size.z * BLOCK.SCALE,
       },
       this.scene
     );
