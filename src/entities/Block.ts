@@ -58,6 +58,7 @@ export class Block {
    * @param gridSize - Number of grid cells occupied [x, y, z]
    * @param direction - Arrow direction enum
    * @param color - Optional custom color
+   * @param parent - Optional parent node for rotation
    */
   constructor(
     scene: Scene,
@@ -65,7 +66,8 @@ export class Block {
     gridPosition: Vector3,
     gridSize: Vector3,
     direction: Direction,
-    color?: Color3
+    color?: Color3,
+    parent?: any
   ) {
     this.scene = scene;
     this._gridPosition = gridPosition.clone();
@@ -83,13 +85,18 @@ export class Block {
     this.mesh.position = worldPosition.add(visualSize.scale(0.5));
     this.mesh.isVisible = false;
 
+    // Set parent immediately for temp mesh
+    if (parent) {
+      this.mesh.parent = parent;
+    }
+
     // Create shared wood texture if not exists
     if (!Block.sharedWoodTexture) {
       Block.sharedWoodTexture = new Texture("/wood-texture.jpg", scene);
     }
 
     // Load GLB model asynchronously
-    this.loadModel(worldPosition, visualSize, color);
+    this.loadModel(worldPosition, visualSize, color, parent);
   }
 
   /**
@@ -108,17 +115,17 @@ export class Block {
   /**
    * Load GLB model and setup instance
    */
-  private async loadModel(worldPosition: Vector3, visualSize: Vector3, color?: Color3): Promise<void> {
+  private async loadModel(worldPosition: Vector3, visualSize: Vector3, color?: Color3, parent?: any): Promise<void> {
     // If model already loaded, create instance immediately
     if (Block.sharedBeveledBox) {
-      this.setupInstance(worldPosition, visualSize, color);
+      this.setupInstance(worldPosition, visualSize, color, parent);
       return;
     }
 
     // If already loading, wait for it
     if (Block.loadPromise) {
       await Block.loadPromise;
-      this.setupInstance(worldPosition, visualSize, color);
+      this.setupInstance(worldPosition, visualSize, color, parent);
       return;
     }
 
@@ -161,16 +168,16 @@ export class Block {
           Block.sharedBeveledBox.setEnabled(false); // Hide the original
 
           // Setup this instance now that model is loaded
-          this.setupInstance(worldPosition, visualSize, color);
+          this.setupInstance(worldPosition, visualSize, color, parent);
         } else {
           console.error("No mesh with geometry found in beveled-cube.glb");
           // Fallback to basic box
-          this.setupFallbackBox(worldPosition, visualSize, color);
+          this.setupFallbackBox(worldPosition, visualSize, color, parent);
         }
       } catch (error) {
         console.error("Error loading beveled-cube.glb:", error);
         // Fallback to basic box
-        this.setupFallbackBox(worldPosition, visualSize, color);
+        this.setupFallbackBox(worldPosition, visualSize, color, parent);
       }
     })();
 
@@ -180,11 +187,14 @@ export class Block {
   /**
    * Setup instance from loaded model
    */
-  private setupInstance(worldPosition: Vector3, visualSize: Vector3, color?: Color3): void {
+  private setupInstance(worldPosition: Vector3, visualSize: Vector3, color?: Color3, parent?: any): void {
     if (!Block.sharedBeveledBox) {
-      this.setupFallbackBox(worldPosition, visualSize, color);
+      this.setupFallbackBox(worldPosition, visualSize, color, parent);
       return;
     }
+
+    // Store parent from temp mesh
+    const oldParent = this.mesh.parent;
 
     // Dispose temp box
     if (this.mesh) {
@@ -196,6 +206,11 @@ export class Block {
     this.mesh.scaling = visualSize;
     // Position at corner + half the visual size to center the mesh
     this.mesh.position = worldPosition.add(visualSize.scale(0.5));
+
+    // Restore parent
+    if (parent || oldParent) {
+      this.mesh.parent = parent || oldParent;
+    }
 
     // Apply custom color if provided
     if (color) {
@@ -212,7 +227,9 @@ export class Block {
   /**
    * Fallback to basic box if GLB fails to load
    */
-  private setupFallbackBox(worldPosition: Vector3, visualSize: Vector3, color?: Color3): void {
+  private setupFallbackBox(worldPosition: Vector3, visualSize: Vector3, color?: Color3, parent?: any): void {
+    // Store parent from temp mesh
+    const oldParent = this.mesh.parent;
     // Dispose temp box if exists
     if (this.mesh) {
       this.mesh.dispose();
@@ -231,6 +248,11 @@ export class Block {
     );
     // Position at corner + half the visual size to center the mesh
     this.mesh.position = worldPosition.add(visualSize.scale(0.5));
+
+    // Restore parent
+    if (parent || oldParent) {
+      this.mesh.parent = parent || oldParent;
+    }
 
     // Create material
     this.material = new StandardMaterial("blockMaterial", this.scene);
@@ -308,18 +330,10 @@ export class Block {
   }
 
   /**
-   * Update the removable state and visual feedback
+   * Update the removable state
    */
   public updateRemovableState(isRemovable: boolean): void {
     this._isRemovable = isRemovable;
-
-    if (this.material) {
-      if (isRemovable) {
-        this.material.emissiveColor = new Color3(0.1, 0.3, 0.1);
-      } else {
-        this.material.emissiveColor = new Color3(0.1, 0.1, 0.1);
-      }
-    }
   }
 
   /**
@@ -421,21 +435,6 @@ export class Block {
         this._isAnimating = false;
       }
     );
-  }
-
-  /**
-   * Visual feedback for hover state
-   */
-  public highlight(isHovering: boolean): void {
-    if (!this.material) return;
-
-    if (isHovering && this._isRemovable) {
-      this.material.emissiveColor = new Color3(0.2, 0.5, 0.2);
-    } else if (this._isRemovable) {
-      this.material.emissiveColor = new Color3(0.1, 0.3, 0.1);
-    } else {
-      this.material.emissiveColor = new Color3(0.1, 0.1, 0.1);
-    }
   }
 
   /**

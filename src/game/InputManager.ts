@@ -167,16 +167,8 @@ export class InputManager {
 
     // Only emit if hover state changed
     if (newHoveredBlock !== this.hoveredBlock) {
-      // Clear previous hover
-      if (this.hoveredBlock) {
-        this.hoveredBlock.highlight(false);
-      }
-
-      // Set new hover
+      // Update hover state
       this.hoveredBlock = newHoveredBlock;
-      if (this.hoveredBlock) {
-        this.hoveredBlock.highlight(true);
-      }
 
       this.emit({ type: "blockHovered", block: this.hoveredBlock });
     }

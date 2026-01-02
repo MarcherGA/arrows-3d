@@ -73,7 +73,8 @@ export class GameManager {
         blockData.position,
         blockData.gridSize,
         blockData.direction,
-        blockData.color
+        blockData.color,
+        this.blockContainer
       );
 
       // Register in occupancy grid
