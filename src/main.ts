@@ -44,7 +44,7 @@ class Game {
     this.setupGameCallbacks();
 
     // Load first level
-    this.gameManager.loadLevel(Level2);
+    this.gameManager.loadLevel(Level1);
 
     // Start render loop
     this.engine.runRenderLoop(() => {
@@ -114,10 +114,20 @@ class Game {
     this.gameManager.onWin(() => {
       console.log("🎉 You won!");
       setTimeout(() => {
-        if (confirm("Level complete! Play again?")) {
-          this.gameManager.restart(Level1);
-        }
+        this.uiManager.showWinOverlay();
       }, 500);
+    });
+
+    // Setup overlay button handlers
+    this.uiManager.onHomeButton(() => {
+      this.uiManager.hideWinOverlay();
+      // TODO: Navigate to home screen when implemented
+      console.log("Home button clicked");
+    });
+
+    this.uiManager.onPlayButton(() => {
+      this.uiManager.hideWinOverlay();
+      this.gameManager.restart(Level1);
     });
 
     // Track block removal

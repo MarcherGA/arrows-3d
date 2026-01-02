@@ -108,13 +108,13 @@
       }
 
       .cash-icon {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
         position: absolute;
-        left: -20px;
+        left: -22px;
         top: 50%;
         transform: translateY(-50%);
       }
@@ -155,6 +155,186 @@
         cursor: pointer;
         z-index: 10;
       }
+
+      /* Win Overlay Styles */
+      :root {
+        --bg-blue: #3266d5;
+        --dark-blue: #1b47a1;
+        --gold: #f4d34d;
+        --green: #7dc001;
+        --green-dark: #5e9101;
+        --white: #ffffff;
+        --text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      }
+
+      /* Main Container */
+      .overlay-container {
+        position: fixed;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        z-index: 100;
+        align-items: center;
+      }
+
+      .overlay-container.show {
+        display: flex;
+      }
+
+      /* Top Section (Piggy Bank) */
+      .top-section {
+        background-color: var(--bg-blue);
+        border: 3px solid var(--gold);
+        border-radius: 40px;
+        padding: 7px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        width: 300px;
+      }
+
+      /* Bottom Section (Results) */
+      .bottom-section {
+        background-color: var(--bg-blue);
+        border: 3px solid var(--gold);
+        border-radius: 40px;
+        padding: 40px 20px 25px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        min-height: 325px;
+        width: 360px;
+      }
+
+      /* Decorative Level Header */
+      .level-header {
+        position: absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--bg-blue);
+        border: 3px solid var(--gold);
+        border-radius: 0 0 20px 20px;
+        width: 80%;
+        height: 45px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--white);
+        font-size: 28px;
+        font-weight: bold;
+        box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2);
+      }
+
+      /* Icon Styling */
+      .piggy-icon {
+        width: 42px;
+        height: 42px;
+        margin-bottom: 5px;
+        filter: brightness(0) invert(1);
+      }
+
+      .piggy-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .cash-pill {
+        background-color: var(--dark-blue);
+        width: 150px;
+        border-radius: 30px;
+        padding: 2px 25px 2px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-size: 32px;
+        font-weight: bold;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+        position: relative;
+      }
+
+      .overlay-cash-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .overlay-cash-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      /* Text Labels */
+      .win-text {
+        color: var(--white);
+        font-size: 22px;
+        font-weight: bold;
+        margin: 10px 0;
+        text-shadow: var(--text-shadow);
+      }
+
+      /* Add spacing under bottom section cash pill */
+      .bottom-section .cash-pill {
+        margin-bottom: 40px;
+      }
+
+      /* Buttons */
+      .button-container {
+        display: flex;
+        gap: 15px;
+        margin-top: auto;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn {
+        background: linear-gradient(to bottom, var(--green) 0%, var(--green-dark) 100%);
+        border: 2px solid #a8e03f;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 0px #4a7201, 0 6px 10px rgba(0,0,0,0.3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.1s;
+      }
+
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0px #4a7201;
+      }
+
+      .btn-home {
+        width: 70px;
+        height: 70px;
+      }
+
+      .btn-play {
+        width: 140px;
+        height: 70px;
+      }
+
+      /* Simple SVG Icons */
+      .icon-svg {
+        fill: white;
+        width: 35px;
+        height: 35px;
+      }
     </style>
   </head>
   <body>
@@ -180,6 +360,37 @@
     <!-- Bottom lock button -->
     <div class="lock-button">
       <i class="fa-solid fa-lock"></i>
+    </div>
+
+    <!-- Win Overlay -->
+    <div class="overlay-container show" id="winOverlay">
+      <div class="top-section">
+        <div class="piggy-icon"><img src="/piggy-bank.png" alt="Piggy Bank"></div>
+        <div class="cash-pill">
+          <div class="overlay-cash-icon"><img src="/dollars.png" alt="Currency"></div>
+          <span id="totalCurrency">0</span>
+        </div>
+      </div>
+
+      <div class="bottom-section">
+        <div class="level-header" id="overlayLevel">1</div>
+
+        <div class="win-text">You win</div>
+
+        <div class="cash-pill">
+          <div class="overlay-cash-icon"><img src="/dollars.png" alt="Currency"></div>
+          <span id="levelCurrency">0</span>
+        </div>
+
+        <div class="button-container">
+          <button class="btn btn-home" id="homeButton">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          </button>
+          <button class="btn btn-play" id="playButton">
+            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
 
     <canvas id="renderCanvas"></canvas>
