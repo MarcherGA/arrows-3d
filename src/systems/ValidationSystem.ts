@@ -1,59 +1,56 @@
-import { Ray } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core";
 import { Block } from "../entities/Block";
-import { BLOCK } from "../constants";
+import { OccupancyGrid } from "./OccupancyGrid";
 
 /**
- * Validates block removal logic using raycasting
+ * Validates block removal logic using grid-based collision detection
  */
 export class ValidationSystem {
-  constructor() {
-    // No scene needed, raycasting uses block meshes directly
+  private occupancyGrid!: OccupancyGrid;
+
+  /**
+   * Set the occupancy grid to use for validation
+   */
+  public setOccupancyGrid(grid: OccupancyGrid): void {
+    this.occupancyGrid = grid;
   }
 
   /**
    * Check if a specific block can be removed (no obstructions in arrow direction)
    * @param block - The block to check
-   * @param allBlocks - All blocks in the scene
+   * @returns Object with isRemovable flag and optional blocking block
+   */
+  public checkBlockRemoval(block: Block): { isRemovable: boolean; blockingBlock?: Block } {
+    const gridDir = this.getGridDirection(block.arrowDirection);
+
+    // Find the first block blocking this block's path
+    const blockingBlock = this.occupancyGrid.getBlockingBlock(block, gridDir);
+
+    return {
+      isRemovable: !blockingBlock,
+      blockingBlock: blockingBlock,
+    };
+  }
+
+  /**
+   * Check if a specific block can be removed (backward compatibility)
+   * @param block - The block to check
+   * @param _allBlocks - All blocks in the scene (unused now, kept for compatibility)
    * @returns true if block can be removed, false if blocked
    */
-  public isBlockRemovable(block: Block, allBlocks: Block[]): boolean {
-    const blockCenter = block.position;
-    const direction = block.arrowDirection;
-    const mesh = block.getMesh();
+  public isBlockRemovable(block: Block, _allBlocks: Block[]): boolean {
+    return this.checkBlockRemoval(block).isRemovable;
+  }
 
-    // Refresh bounding info to ensure it's up to date
-    mesh.refreshBoundingInfo();
-    const boundingInfo = mesh.getBoundingInfo();
-    const extents = boundingInfo.boundingBox.extendSizeWorld; // Use world-space extents
-
-    // Calculate the half-extent in the direction of movement
-    const blockHalfExtent =
-      Math.abs(direction.x) * extents.x +
-      Math.abs(direction.y) * extents.y +
-      Math.abs(direction.z) * extents.z;
-
-    // Start the ray from just outside the block's surface in the movement direction
-    // Add a small offset (0.15) to ensure we're clearly outside the block's bounds
-    const rayOrigin = blockCenter.add(direction.scale(blockHalfExtent + 0.15));
-
-    // Create ray from block surface in arrow direction
-    const ray = new Ray(rayOrigin, direction, BLOCK.COLLISION_CHECK_DISTANCE);
-
-    // Check against all other blocks
-    for (const otherBlock of allBlocks) {
-      if (otherBlock === block) continue;
-
-      // Perform ray intersection with the other block's mesh
-      const pickInfo = ray.intersectsMesh(otherBlock.getMesh());
-
-      // If the ray hits another block at any distance, it's blocking
-      if (pickInfo.hit) {
-        // There's a block in the way
-        return false;
-      }
-    }
-
-    return true;
+  /**
+   * Convert world direction to grid direction (normalize to -1, 0, 1)
+   */
+  private getGridDirection(worldDirection: Vector3): Vector3 {
+    return new Vector3(
+      Math.sign(worldDirection.x),
+      Math.sign(worldDirection.y),
+      Math.sign(worldDirection.z)
+    );
   }
 
   /**
@@ -65,15 +62,6 @@ export class ValidationSystem {
       const isRemovable = this.isBlockRemovable(block, blocks);
       block.updateRemovableState(isRemovable);
     }
-  }
-
-  /**
-   * Get all currently removable blocks
-   * @param blocks - All blocks to check
-   * @returns Array of removable blocks
-   */
-  public getRemovableBlocks(blocks: Block[]): Block[] {
-    return blocks.filter((block) => this.isBlockRemovable(block, blocks));
   }
 
   /**

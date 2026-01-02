@@ -11,20 +11,7 @@ import {
 } from "@babylonjs/core";
 import { BLOCK, COLORS } from "../constants";
 import { positionArrowOnFace } from "../systems/ArrowSystem";
-
-/**
- * Direction enum for arrows
- */
-export const Direction = {
-  UP: "UP",
-  DOWN: "DOWN",
-  LEFT: "LEFT",
-  RIGHT: "RIGHT",
-  FORWARD: "FORWARD",
-  BACK: "BACK",
-} as const;
-
-export type Direction = typeof Direction[keyof typeof Direction];
+import { Direction } from "./Block";
 
 /**
  * Arrow indicator that shows on block faces

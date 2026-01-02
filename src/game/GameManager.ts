@@ -3,6 +3,7 @@ import { Block } from "../entities/Block";
 import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
+import { OccupancyGrid } from "../systems/OccupancyGrid";
 import type { LevelData } from "../levels/Level1";
 import { LevelParser } from "../levels/LevelParser";
 import { CAMERA } from "../constants";
@@ -27,6 +28,7 @@ export class GameManager {
   private blocks: Block[] = [];
   private inputManager: InputManager;
   private validationSystem: ValidationSystem;
+  private occupancyGrid!: OccupancyGrid;
   private blockContainer: TransformNode;
   private gameState: GameState = GameState.PLAYING;
   private onWinCallback?: () => void;
@@ -57,6 +59,9 @@ export class GameManager {
     // Reset currency to 0 when loading a new level
     this.uiManager.resetCurrency();
 
+    // Create fresh occupancy grid
+    this.occupancyGrid = new OccupancyGrid();
+
     // Process level blocks: convert grid positions to world positions
     const processedBlocks = LevelParser.processLevelBlocks(levelData.blocks);
 
@@ -64,18 +69,24 @@ export class GameManager {
     for (const blockData of processedBlocks) {
       const block = new Block(
         this.scene,
+        blockData.worldPosition,
         blockData.position,
+        blockData.gridSize,
         blockData.direction,
-        blockData.color,
-        blockData.size,
-        this.blockContainer  // Pass parent directly to constructor
+        blockData.color
       );
+
+      // Register in occupancy grid
+      this.occupancyGrid.register(block, blockData.position, blockData.gridSize);
 
       this.blocks.push(block);
     }
 
     // Update input manager with new blocks
     this.inputManager.setBlocks(this.blocks);
+
+    // Pass grid to validation system
+    this.validationSystem.setOccupancyGrid(this.occupancyGrid);
 
     // Initial validation pass
     this.validationSystem.updateAllBlockStates(this.blocks);
@@ -110,14 +121,19 @@ export class GameManager {
     if (block.isAnimating()) return;
 
     // Check in real-time if the block can be removed
-    const isRemovable = this.validationSystem.isBlockRemovable(block, this.blocks);
+    const result = this.validationSystem.checkBlockRemoval(block);
 
-    if (isRemovable) {
+    if (result.isRemovable) {
       // Remove the block
       this.removeBlock(block);
     } else {
-      // Shake to indicate it can't be removed
+      // Shake the clicked block to indicate it can't be removed
       block.shake();
+
+      // Also shake the blocking block if one exists
+      if (result.blockingBlock && !result.blockingBlock.isAnimating()) {
+        result.blockingBlock.shake();
+      }
     }
   }
 
@@ -125,6 +141,9 @@ export class GameManager {
    * Remove a block and update game state
    */
   private removeBlock(block: Block): void {
+    // Unregister from grid immediately
+    this.occupancyGrid.unregister(block);
+
     // Increment currency immediately when block starts flying away
     this.uiManager.incrementCurrency();
 

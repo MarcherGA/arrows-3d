@@ -9,7 +9,7 @@ import {
 } from "@babylonjs/core";
 import { GameManager } from "./game/GameManager";
 import { Level1, Level2 } from "./levels/Level1";
-import { CAMERA, COLORS } from "./constants";
+import { CAMERA } from "./constants";
 import { UIManager } from "./ui/UIManager";
 
 /**
@@ -44,7 +44,7 @@ class Game {
     this.setupGameCallbacks();
 
     // Load first level
-    this.gameManager.loadLevel(Level1);
+    this.gameManager.loadLevel(Level2);
 
     // Start render loop
     this.engine.runRenderLoop(() => {

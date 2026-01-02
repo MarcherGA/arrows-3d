@@ -5,10 +5,10 @@ import { Direction } from "../entities/Block";
  * Data structure for a single block in a level
  */
 export interface BlockData {
-  position: Vector3;
-  direction: Direction;
-  color?: Color3;
-  size?: Vector3;
+  position: Vector3;    // Grid coordinates (corner position)
+  gridSize: Vector3;    // Number of grid cells occupied [x, y, z]
+  direction: Direction; // Arrow direction
+  color?: Color3;       // Optional custom color
 }
 
 /**
@@ -30,38 +30,38 @@ export const Level1: LevelData = {
   name: "3x3x3 Grid",
   levelNumber: 1,
   blocks: [
-    // Layer 0 (y=0) - bottom layer
-    { position: new Vector3(0, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(1, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(2, 0, 0), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(0, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(1, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(2, 0, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(0, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(1, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
-    { position: new Vector3(2, 0, 2), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    // Layer 0 (y=0) - bottom layer - all standard 1x1x1 blocks
+    { position: new Vector3(0, 0, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(0, 0, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(0, 0, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(1, 0, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
+    { position: new Vector3(2, 0, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.8, 0.4, 0.4) },
 
     // Layer 1 (y=1) - middle layer
-    { position: new Vector3(0, 1, 0), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(1, 1, 0), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(2, 1, 0), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(0, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(2, 1, 1), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(0, 1, 2), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(1, 1, 2), direction: Direction.BACK, color: new Color3(0.4, 0.8, 0.4) },
-    { position: new Vector3(2, 1, 2), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(0, 1, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(0, 1, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.UP, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(0, 1, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.LEFT, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(1, 1, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.BACK, color: new Color3(0.4, 0.8, 0.4) },
+    { position: new Vector3(2, 1, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.RIGHT, color: new Color3(0.4, 0.8, 0.4) },
 
     // Layer 2 (y=2) - top layer
-    { position: new Vector3(0, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(1, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(2, 2, 0), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(0, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(1, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(2, 2, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(0, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(1, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
-    { position: new Vector3(2, 2, 2), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(0, 2, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 0), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(0, 2, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 1), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(0, 2, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(1, 2, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
+    { position: new Vector3(2, 2, 2), gridSize: new Vector3(1, 1, 1), direction: Direction.DOWN, color: new Color3(0.4, 0.4, 0.8) },
   ],
   cameraDistance: 15,
 };
@@ -69,42 +69,43 @@ export const Level1: LevelData = {
 /**
  * Test Level 2: Stretched blocks demonstration
  *
- * Using grid positions - each grid unit = 1 block + gap
- * LevelParser will automatically convert to world positions with consistent gaps
+ * Demonstrates blocks with different grid sizes
+ * gridSize defines how many grid cells the block occupies
  */
 export const Level2: LevelData = {
   name: "Stretched Blocks",
   levelNumber: 2,
   blocks: [
-    // Normal block at grid 0
+    // Normal 1x1x1 block at grid (0,0,0)
     {
       position: new Vector3(0, 0, 0),
-      direction: Direction.LEFT,
+      gridSize: new Vector3(1, 1, 1),
+      direction: Direction.RIGHT,
       color: new Color3(0.4, 0.8, 0.4),
     },
 
-    // Tall stretched block (1x3x1) at grid center (1)
+    // Tall 1x3x1 block at grid (2,0,0) - occupies cells (2,0,0), (2,1,0), (2,2,0)
     {
       position: new Vector3(1, 0, 0),
+      gridSize: new Vector3(1, 3, 1),
       direction: Direction.UP,
       color: new Color3(0.6, 0.4, 0.3),
-      size: new Vector3(1, 3, 1),
     },
 
-    // Wide stretched block (3x1x1) at grid 2
+    // Wide 3x1x1 block at grid (0,0,2) - occupies cells (0,0,2), (1,0,2), (2,0,2)
+    {
+      position: new Vector3(0, 0, 2),
+      gridSize: new Vector3(3, 1, 1),
+      direction: Direction.RIGHT,
+      color: new Color3(0.4, 0.6, 0.8),
+    },
+
+    // Deep 1x1x2 block at grid (4,0,0) - occupies cells (4,0,0), (4,0,1)
     {
       position: new Vector3(2, 0, 0),
-      direction: Direction.LEFT,
-      color: new Color3(0.4, 0.6, 0.8),
-      size: new Vector3(3, 1, 1),
-    },
-
-    // Deep block (1x1x2) - 1 grid unit backward from center
-    {
-      position: new Vector3(1, 0, -1),
-      direction: Direction.BACK,
+      gridSize: new Vector3(1, 1, 2),
+      direction: Direction.FORWARD,
       color: new Color3(0.8, 0.6, 0.4),
-      size: new Vector3(1, 1, 2),
     },
   ],
   cameraDistance: 15,
