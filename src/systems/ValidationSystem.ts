@@ -17,11 +17,27 @@ export class ValidationSystem {
    * @returns true if block can be removed, false if blocked
    */
   public isBlockRemovable(block: Block, allBlocks: Block[]): boolean {
-    const origin = block.position;
+    const blockCenter = block.position;
     const direction = block.arrowDirection;
+    const mesh = block.getMesh();
 
-    // Create ray from block center in arrow direction
-    const ray = new Ray(origin, direction, BLOCK.COLLISION_CHECK_DISTANCE);
+    // Refresh bounding info to ensure it's up to date
+    mesh.refreshBoundingInfo();
+    const boundingInfo = mesh.getBoundingInfo();
+    const extents = boundingInfo.boundingBox.extendSizeWorld; // Use world-space extents
+
+    // Calculate the half-extent in the direction of movement
+    const blockHalfExtent =
+      Math.abs(direction.x) * extents.x +
+      Math.abs(direction.y) * extents.y +
+      Math.abs(direction.z) * extents.z;
+
+    // Start the ray from just outside the block's surface in the movement direction
+    // Add a small offset (0.15) to ensure we're clearly outside the block's bounds
+    const rayOrigin = blockCenter.add(direction.scale(blockHalfExtent + 0.15));
+
+    // Create ray from block surface in arrow direction
+    const ray = new Ray(rayOrigin, direction, BLOCK.COLLISION_CHECK_DISTANCE);
 
     // Check against all other blocks
     for (const otherBlock of allBlocks) {
@@ -30,7 +46,8 @@ export class ValidationSystem {
       // Perform ray intersection with the other block's mesh
       const pickInfo = ray.intersectsMesh(otherBlock.getMesh());
 
-      if (pickInfo.hit && pickInfo.distance > 0.1) {
+      // If the ray hits another block at any distance, it's blocking
+      if (pickInfo.hit) {
         // There's a block in the way
         return false;
       }

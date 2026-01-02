@@ -109,7 +109,10 @@ export class GameManager {
     if (this.gameState !== GameState.PLAYING) return;
     if (block.isAnimating()) return;
 
-    if (block.isRemovable) {
+    // Check in real-time if the block can be removed
+    const isRemovable = this.validationSystem.isBlockRemovable(block, this.blocks);
+
+    if (isRemovable) {
       // Remove the block
       this.removeBlock(block);
     } else {
