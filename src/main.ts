@@ -96,9 +96,9 @@ class Game {
       camera.lowerRadiusLimit = MIN_RADIUS;
       camera.upperRadiusLimit = MAX_RADIUS;
     } else {
-      // Lock zoom - but allow levels to set different distances
-      camera.lowerRadiusLimit = MIN_RADIUS;
-      camera.upperRadiusLimit = MAX_RADIUS;
+      // Lock zoom at initial radius - levels can override this in GameManager
+      camera.lowerRadiusLimit = INITIAL_RADIUS;
+      camera.upperRadiusLimit = INITIAL_RADIUS;
     }
     camera.lowerBetaLimit = BETA_MIN;
     camera.upperBetaLimit = BETA_MAX;
