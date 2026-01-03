@@ -38,3 +38,12 @@ export const COLORS = {
   ARROW_COLOR: { r: 1, g: 1, b: 1 },
   BACKGROUND: { r: 0.2, g: 0.3, b: 0.4, a: 1 },
 } as const;
+
+export const AUDIO = {
+  MASTER_VOLUME: 1.0,
+  SFX_VOLUME: 1.0,
+  MUSIC_VOLUME: 0.3,
+  BLOCK_CLICKED_VOLUME: 0.6,
+  BLOCK_BLOCKED_VOLUME: 0.7,
+  LEVEL_COMPLETE_VOLUME: 0.8,
+} as const;

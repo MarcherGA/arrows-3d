@@ -12,6 +12,7 @@ import { Level1 } from "./levels/Level1";
 import { CAMERA } from "./constants";
 import { UIManager } from "./ui/UIManager";
 import { AutoplayManager } from "./tutorial/AutoplayManager";
+import { SoundManager, SoundType } from "./audio/SoundManager";
 
 /**
  * Initialize and run the game
@@ -23,6 +24,7 @@ class Game {
   private gameManager: GameManager;
   private uiManager: UIManager;
   private autoplayManager: AutoplayManager;
+  private soundManager: SoundManager;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -39,8 +41,11 @@ class Game {
     // Initialize UI manager
     this.uiManager = new UIManager();
 
-    // Initialize game manager
-    this.gameManager = new GameManager(this.scene, this.uiManager);
+    // Initialize sound manager (uses new AudioV2 engine, independent of scene)
+    this.soundManager = new SoundManager();
+
+    // Initialize game manager with sound manager
+    this.gameManager = new GameManager(this.scene, this.uiManager, this.soundManager);
 
     // Initialize autoplay manager for tutorial
     this.autoplayManager = new AutoplayManager(this.scene, this.gameManager);
@@ -48,11 +53,8 @@ class Game {
     // Setup game callbacks
     this.setupGameCallbacks();
 
-    // Load first level
-    this.gameManager.loadLevel(Level1);
-
-    // Start autoplay tutorial after level loads
-    this.startAutoplayTutorial();
+    // Initialize game asynchronously
+    this.initializeGame();
 
     // Start render loop
     this.engine.runRenderLoop(() => {
@@ -159,9 +161,24 @@ class Game {
   }
 
   /**
-   * Start the autoplay tutorial sequence
+   * Initialize game assets and start gameplay
    */
-  private async startAutoplayTutorial(): Promise<void> {
+  private async initializeGame(): Promise<void> {
+    // Initialize audio system in the background (non-blocking for fast startup)
+    this.soundManager.initialize().then(() => {
+      console.log('Audio system initialized');
+      // Start background music after a short delay
+      setTimeout(() => {
+        this.soundManager.play(SoundType.BACKGROUND_MUSIC);
+      }, 500);
+    }).catch(error => {
+      console.error('Failed to initialize audio:', error);
+      // Game continues without audio
+    });
+
+    // Load first level immediately (don't wait for audio)
+    this.gameManager.loadLevel(Level1);
+
     // Wait for everything to be fully loaded and rendered
     await new Promise(resolve => setTimeout(resolve, 1000));
 

@@ -8,6 +8,7 @@ import type { LevelData } from "../levels/Level1";
 import { LevelParser } from "../levels/LevelParser";
 import { CAMERA } from "../constants";
 import { UIManager } from "../ui/UIManager";
+import { SoundManager, SoundType } from "../audio/SoundManager";
 
 /**
  * Game state enum
@@ -36,10 +37,12 @@ export class GameManager {
   private uiManager: UIManager;
   private restrictedBlock: Block | null = null; // For tutorial mode
   private inputBlocked: boolean = true; // Block input during initialization
+  private soundManager: SoundManager;
 
-  constructor(scene: Scene, uiManager: UIManager) {
+  constructor(scene: Scene, uiManager: UIManager, soundManager: SoundManager) {
     this.scene = scene;
     this.uiManager = uiManager;
+    this.soundManager = soundManager;
     this.inputManager = new InputManager(scene);
     this.validationSystem = new ValidationSystem();
     this.blockContainer = new TransformNode("blockContainer", scene);
@@ -136,9 +139,13 @@ export class GameManager {
     const result = this.validationSystem.checkBlockRemoval(block);
 
     if (result.isRemovable) {
-      // Remove the block
+      // Play success sound and remove the block
+      this.soundManager.play(SoundType.BLOCK_CLICKED);
       this.removeBlock(block);
     } else {
+      // Play blocked sound
+      this.soundManager.play(SoundType.BLOCK_BLOCKED);
+
       // Shake the clicked block to indicate it can't be removed
       block.shake();
 
@@ -229,6 +236,9 @@ export class GameManager {
   private handleWin(): void {
     this.gameState = GameState.WON;
     console.log("Level complete!");
+
+    // Play level complete sound
+    this.soundManager.play(SoundType.LEVEL_COMPLETE);
 
     if (this.onWinCallback) {
       this.onWinCallback();
