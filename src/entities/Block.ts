@@ -48,6 +48,7 @@ export class Block {
   private materialManager: MaterialManager;
   private _blockType: BlockType;
   private _isLocked: boolean = false;
+  private lockOverlays: Mesh[] = []; // Lock chain texture overlays for locked blocks
 
   // Shared resources for all blocks
   private static sharedWoodTexture: Texture | null = null;
@@ -222,7 +223,7 @@ export class Block {
       this.mesh.parent = parent || oldParent;
     }
 
-    // Apply custom color if provided, or gold for KEY blocks
+    // Apply custom color based on block type
     if (color) {
       const material = this.materialManager.getMaterialForColor(color);
       this.mesh.material = material;
@@ -230,6 +231,10 @@ export class Block {
       // Gold color for key blocks
       const goldMaterial = this.materialManager.getMaterialForColor(new Color3(1, 0.84, 0));
       this.mesh.material = goldMaterial;
+    } else if (this._blockType === BlockType.LOCKED) {
+      // Dark grey for locked blocks
+      const lockedMaterial = this.materialManager.getMaterialForColor(new Color3(0.3, 0.3, 0.3));
+      this.mesh.material = lockedMaterial;
     }
 
     // Create arrow overlay
@@ -266,10 +271,12 @@ export class Block {
       this.mesh.parent = parent || oldParent;
     }
 
-    // Create material - use gold for KEY blocks
+    // Create material based on block type
     let blockColor = color || GameConfig.COLOR.BLOCK_DEFAULT;
     if (!color && this._blockType === BlockType.KEY) {
       blockColor = new Color3(1, 0.84, 0); // Gold
+    } else if (!color && this._blockType === BlockType.LOCKED) {
+      blockColor = new Color3(0.3, 0.3, 0.3); // Dark grey
     }
     const material = this.materialManager.getMaterialForColor(blockColor);
     this.mesh.material = material;
@@ -285,14 +292,99 @@ export class Block {
     // Determine which faces should have arrows based on movement direction
     const facesToDraw = this.getFacesForDirection(this.direction);
 
+    // Determine arrow color based on block type
+    const arrowColor = this._blockType === BlockType.LOCKED
+      ? new Color3(0.7, 0.7, 0.7) // Light grey for locked blocks
+      : GameConfig.COLOR.ARROW_COLOR;
+
     // Create arrows for each face using Arrow class
     for (const face of facesToDraw) {
-      const arrow = new Arrow(this.scene, face, this.direction, this.mesh);
+      const arrow = new Arrow(this.scene, face, this.direction, this.mesh, arrowColor);
 
       // Apply inverse scaling to maintain constant arrow size regardless of block stretching
       arrow.setScaling();
 
       this.arrows.push(arrow);
+    }
+
+    // Add lock chain overlays for locked blocks
+    if (this._blockType === BlockType.LOCKED) {
+      this.createLockOverlays();
+    }
+  }
+
+  /**
+   * Create lock chain texture overlays on all 6 faces of locked blocks
+   */
+  private createLockOverlays(): void {
+    // All 6 faces for the lock chain texture
+    const allFaces: Direction[] = [
+      Direction.UP,
+      Direction.DOWN,
+      Direction.LEFT,
+      Direction.RIGHT,
+      Direction.FORWARD,
+      Direction.BACK,
+    ];
+
+    const visualSize = this.gridSizeToVisualSize(this._gridSize);
+    const lockTexture = this.materialManager.getTexture("/textures/lock-chain.jpg");
+
+    for (const face of allFaces) {
+      // Create a plane for this face
+      const plane = MeshBuilder.CreatePlane(
+        "lockOverlay",
+        { width: 1, height: 1 },
+        this.scene
+      );
+      plane.parent = this.mesh;
+
+      // Create material with lock chain texture
+      const lockMaterial = new StandardMaterial("lockChainMat", this.scene);
+      lockMaterial.diffuseTexture = lockTexture;
+      lockMaterial.opacityTexture = lockTexture;
+      lockMaterial.useAlphaFromDiffuseTexture = true;
+      lockMaterial.backFaceCulling = false;
+      lockMaterial.disableLighting = true;
+      lockMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+      plane.material = lockMaterial;
+
+      // Position on face
+      const offset = 0.02; // Slightly above block surface
+
+      // Calculate plane size based on block dimensions
+      let planeWidth = 1;
+      let planeHeight = 1;
+
+      switch (face) {
+        case Direction.UP:
+        case Direction.DOWN:
+          planeWidth = visualSize.x;
+          planeHeight = visualSize.z;
+          plane.rotation.x = Math.PI / 2;
+          plane.position = new Vector3(0, (visualSize.y / 2 + offset) * (face === Direction.UP ? 1 : -1), 0);
+          break;
+        case Direction.LEFT:
+        case Direction.RIGHT:
+          planeWidth = visualSize.z;
+          planeHeight = visualSize.y;
+          plane.rotation.y = Math.PI / 2;
+          plane.position = new Vector3((visualSize.x / 2 + offset) * (face === Direction.RIGHT ? 1 : -1), 0, 0);
+          break;
+        case Direction.FORWARD:
+        case Direction.BACK:
+          planeWidth = visualSize.x;
+          planeHeight = visualSize.y;
+          if (face === Direction.BACK) plane.rotation.y = Math.PI;
+          plane.position = new Vector3(0, 0, (visualSize.z / 2 + offset) * (face === Direction.FORWARD ? 1 : -1));
+          break;
+      }
+
+      plane.scaling = new Vector3(planeWidth, planeHeight, 1);
+      plane.isPickable = false;
+      plane.renderingGroupId = 0;
+
+      this.lockOverlays.push(plane);
     }
   }
 
@@ -521,6 +613,15 @@ export class Block {
       arrow.dispose();
     }
     this.arrows = [];
+
+    // Dispose lock overlays
+    for (const overlay of this.lockOverlays) {
+      if (overlay.material) {
+        overlay.material.dispose();
+      }
+      overlay.dispose();
+    }
+    this.lockOverlays = [];
   }
 
   // Getters

@@ -23,12 +23,14 @@ export class Arrow {
    * @param face - Which face to place arrow on
    * @param pointingDirection - Which direction the arrow should point
    * @param parent - Parent mesh (the block)
+   * @param color - Optional arrow color (defaults to config)
    */
   constructor(
     scene: Scene,
     face: Direction,
     pointingDirection: Direction,
-    parent: Mesh | any
+    parent: Mesh | any,
+    color?: import("@babylonjs/core").Color3
   ) {
     // Create arrow plane
     const { ARROW_SIZE } = GameConfig.BLOCK;
@@ -41,9 +43,10 @@ export class Arrow {
 
     // Use shared material from MaterialManager
     const materialManager = MaterialManager.getInstance(scene);
+    const arrowColor = color || GameConfig.COLOR.ARROW_COLOR;
     this.mesh.material = materialManager.getArrowMaterial(
-      GameConfig.COLOR.ARROW_COLOR,
-      "/icons/brown-arrow.png"
+      arrowColor,
+      "/icons/arrow.png"
     );
     this.mesh.renderingGroupId = 0;
     this.mesh.isPickable = false;

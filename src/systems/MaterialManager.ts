@@ -99,6 +99,8 @@ export class MaterialManager {
     const material = new StandardMaterial(name, this.scene);
     const texture = this.getTexture(textureUrl);
 
+    // Use diffuseColor to allow texture color multiplication
+    material.diffuseColor = color;
     material.emissiveColor = color;
     material.disableLighting = true;
     material.backFaceCulling = true;

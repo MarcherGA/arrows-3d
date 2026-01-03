@@ -97,7 +97,7 @@ export const BLOCK_CONFIG = {
  */
 export const COLOR_CONFIG = {
   /** Default block color (brown/wood) */
-  BLOCK_DEFAULT: new Color3(0.8, 0.6, 0.4),
+  BLOCK_DEFAULT: new Color3(0.604, 0.36, 0.22),
   /** Arrow indicator color (white) */
   ARROW_COLOR: new Color3(1, 1, 1),
   /** Background clear color (dark blue) */
