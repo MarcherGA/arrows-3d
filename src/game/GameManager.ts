@@ -268,6 +268,11 @@ export class GameManager {
         blockData.blockType
       );
 
+      // Debug log for special blocks
+      if (blockData.blockType) {
+        console.log(`Created ${blockData.blockType} block at`, blockData.position);
+      }
+
       // Register in occupancy grid
       this.occupancyGrid.register(block, blockData.position, blockData.gridSize);
 

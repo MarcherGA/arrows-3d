@@ -218,7 +218,9 @@ export class Block {
     if (needsCustomMaterial) {
       // Use clone instead of instance for blocks that need custom materials
       // Instances share materials with parent, clones can have their own
-      this.mesh = Block.sharedBeveledBox.clone("block", null, false);
+      this.mesh = Block.sharedBeveledBox.clone("block", null, false) as Mesh;
+      this.mesh.setEnabled(true); // Ensure clone is visible
+      this.mesh.isVisible = true;
     } else {
       // Use instance for standard blocks (better performance)
       this.mesh = Block.sharedBeveledBox.createInstance("block");
@@ -242,10 +244,12 @@ export class Block {
       const goldMaterial = this.materialManager.getMaterialForColor(new Color3(1, 0.843, 0));
       goldMaterial.emissiveColor = new Color3(0.3, 0.25, 0); // Add glow
       this.mesh.material = goldMaterial;
+      console.log("✨ Created KEY block with gold material");
     } else if (this._blockType === BlockType.LOCKED) {
       // Medium grey for locked blocks (visible against any background)
       const lockedMaterial = this.materialManager.getMaterialForColor(new Color3(0.5, 0.5, 0.5));
       this.mesh.material = lockedMaterial;
+      console.log("🔒 Created LOCKED block with grey material");
     }
 
     // Create arrow overlay
