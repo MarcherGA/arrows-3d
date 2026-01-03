@@ -180,9 +180,30 @@ export class GameManager {
   private handleRotation(deltaX: number, deltaY: number): void {
     if (this.gameState !== GameState.PLAYING) return;
 
-    // Rotate the container freely to see all sides
-    this.blockContainer.rotation.y += deltaX * CAMERA.ROTATION_SENSITIVITY;
-    this.blockContainer.rotation.x -= deltaY * CAMERA.ROTATION_SENSITIVITY;
+    const camera = this.scene.activeCamera;
+    if (!camera) return;
+
+    // Get camera's right and up vectors for screen-relative rotation
+    const cameraRight = camera.getDirection(new Vector3(1, 0, 0));
+    const cameraUp = camera.getDirection(new Vector3(0, 1, 0));
+
+    // Apply rotation around camera's up axis (for horizontal drag)
+    if (deltaX !== 0) {
+      this.blockContainer.rotate(
+        cameraUp,
+        -deltaX * CAMERA.ROTATION_SENSITIVITY,
+        1 // BABYLON.Space.WORLD
+      );
+    }
+
+    // Apply rotation around camera's right axis (for vertical drag)
+    if (deltaY !== 0) {
+      this.blockContainer.rotate(
+        cameraRight,
+        -deltaY * CAMERA.ROTATION_SENSITIVITY,
+        1 // BABYLON.Space.WORLD
+      );
+    }
   }
 
   /**
@@ -241,6 +262,27 @@ export class GameManager {
    */
   public getRemainingBlocks(): number {
     return this.blocks.length;
+  }
+
+  /**
+   * Get all blocks (for autoplay/tutorial)
+   */
+  public getBlocks(): Block[] {
+    return this.blocks;
+  }
+
+  /**
+   * Get validation system (for autoplay/tutorial)
+   */
+  public getValidationSystem(): ValidationSystem {
+    return this.validationSystem;
+  }
+
+  /**
+   * Programmatically click a block (for autoplay/tutorial)
+   */
+  public clickBlock(block: Block): void {
+    this.handleBlockClick(block);
   }
 
   /**
