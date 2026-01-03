@@ -55,6 +55,7 @@ export class UIManager {
   public incrementCurrency(): void {
     this.currency++;
     this.updateCurrencyDisplay();
+    this.showCurrencyGain(1);
   }
 
   /**
@@ -64,6 +65,44 @@ export class UIManager {
     if (this.currencyElement) {
       this.currencyElement.textContent = this.currency.toString();
     }
+  }
+
+  /**
+   * Show floating currency gain animation
+   */
+  private showCurrencyGain(amount: number): void {
+    const currencyContainer = document.querySelector('.currency-container');
+    if (!currencyContainer) return;
+
+    // Create the floating element
+    const gainElement = document.createElement('div');
+    gainElement.className = 'currency-gain';
+
+    // Create icon
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'currency-gain-icon';
+    const img = document.createElement('img');
+    img.src = '/dollars.png';
+    img.alt = 'Currency';
+    iconDiv.appendChild(img);
+
+    // Create text
+    const textSpan = document.createElement('span');
+    textSpan.textContent = `+${amount}`;
+
+    // Assemble
+    gainElement.appendChild(iconDiv);
+    gainElement.appendChild(textSpan);
+
+    // Add to container
+    currencyContainer.appendChild(gainElement);
+
+    // Remove after animation completes
+    setTimeout(() => {
+      if (gainElement.parentNode) {
+        gainElement.parentNode.removeChild(gainElement);
+      }
+    }, 1500);
   }
 
   /**

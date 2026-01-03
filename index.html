@@ -129,7 +129,50 @@
         font-size: 28px;
         font-weight: bold;
       }
-      
+
+      /* Floating currency gain animation */
+      .currency-gain {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #f4d34d;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        pointer-events: none;
+        animation: floatUp 1.5s ease-out forwards;
+        z-index: 100;
+      }
+
+      .currency-gain-icon {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .currency-gain-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      @keyframes floatUp {
+        0% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-60px);
+        }
+      }
+
 
       /* Footer Lock Button */
       .footer {
