@@ -31,10 +31,12 @@ export const CAMERA_CONFIG = {
   /** Initial vertical rotation - 60 degrees (radians) */
   INITIAL_BETA: Math.PI / 3,
   /** Camera distance from target */
-  INITIAL_RADIUS: 20,
-  /** Minimum zoom distance */
-  MIN_RADIUS: 20,
-  /** Maximum zoom distance */
+  INITIAL_RADIUS: 15,
+  /** Enable user zoom control (otherwise fixed radius) */
+  ENABLE_ZOOM: false,
+  /** Minimum zoom distance (when zoom enabled) */
+  MIN_RADIUS: 10,
+  /** Maximum zoom distance (when zoom enabled) */
   MAX_RADIUS: 20,
   /** Minimum horizontal rotation */
   ALPHA_MIN: 0,
@@ -49,7 +51,23 @@ export const CAMERA_CONFIG = {
 } as const;
 
 /**
- * Input handling configuration
+ * Lighting configuration
+ */
+export const LIGHTING_CONFIG = {
+  /** Hemispheric light intensity */
+  HEMISPHERIC_INTENSITY: 1.5,
+  /** Hemispheric light direction */
+  HEMISPHERIC_DIRECTION: { x: 0, y: 1, z: 0 },
+  /** Directional light intensity */
+  DIRECTIONAL_INTENSITY: 0.2,
+  /** Directional light direction */
+  DIRECTIONAL_DIRECTION: { x: -1, y: -2, z: -1 },
+  /** Directional light position */
+  DIRECTIONAL_POSITION: { x: 10, y: 20, z: 10 },
+} as const;
+
+/**
+ * Input handling configuration 
  */
 export const INPUT_CONFIG = {
   /** Pixels threshold to distinguish drag from click */
@@ -66,6 +84,8 @@ export const BLOCK_CONFIG = {
   GAP: 0.05,
   /** Arrow indicator size */
   ARROW_SIZE: 1.25,
+  /** Arrow offset from block face */
+  ARROW_FACE_OFFSET: 0.01,
   /** Model path for block mesh */
   MODEL_PATH: "/models/beveled-cube.glb",
   /** Model name within GLB file */
@@ -95,7 +115,7 @@ export const AUDIO_CONFIG = {
   /** Background music volume */
   MUSIC_VOLUME: 0.3,
   /** Block click sound volume */
-  BLOCK_CLICKED_VOLUME: 0.6,
+  BLOCK_CLICKED_VOLUME: 0.7,
   /** Block blocked sound volume */
   BLOCK_BLOCKED_VOLUME: 0.7,
   /** Level complete sound volume */
@@ -154,15 +174,15 @@ export const TUTORIAL_CONFIG = {
   /** Finger offset for blocked block (X) */
   BLOCKED_BLOCK_OFFSET_X: 40,
   /** Finger offset for blocked block (Y) */
-  BLOCKED_BLOCK_OFFSET_Y: 40,
+  BLOCKED_BLOCK_OFFSET_Y: 50,
   /** Finger offset for blocking block (X) */
-  BLOCKING_BLOCK_OFFSET_X: 60,
+  BLOCKING_BLOCK_OFFSET_X: 80,
   /** Finger offset for blocking block (Y) */
-  BLOCKING_BLOCK_OFFSET_Y: 60,
+  BLOCKING_BLOCK_OFFSET_Y: 80,
   /** Finger offset for target block (X) */
-  TARGET_BLOCK_OFFSET_X: 30,
+  TARGET_BLOCK_OFFSET_X: 40,
   /** Finger offset for target block (Y) */
-  TARGET_BLOCK_OFFSET_Y: 70,
+  TARGET_BLOCK_OFFSET_Y: 85,
 
   // === Grid Positions ===
   /** Grid position of blocked demonstration block */
@@ -197,8 +217,14 @@ export const UI_CONFIG = {
   CURRENCY_PER_BLOCK: 1,
   /** Currency icon path */
   CURRENCY_ICON: "/icons/dollar-icon.png",
+  /** Currency floating animation icon */
+  CURRENCY_GAIN_ICON: "/icons/dollars.png",
+  /** Currency floating animation duration (ms) */
+  CURRENCY_GAIN_DURATION: 1500,
   /** Level icon path */
   LEVEL_ICON: "/icons/piggy-bank.png",
+  /** Delay before showing win overlay (ms) */
+  WIN_OVERLAY_DELAY: 500,
 } as const;
 
 /**
@@ -239,6 +265,24 @@ export const PERFORMANCE_CONFIG = {
 } as const;
 
 /**
+ * Playable ad specific configuration
+ */
+export const PLAYABLE_AD_CONFIG = {
+  /** Maximum engagement time before forcing CTA (ms) */
+  MAX_ENGAGEMENT_TIME: 30000,
+  /** Idle timeout before showing nudge/CTA (ms) */
+  IDLE_TIMEOUT: 8000,
+  /** Enable automatic CTA on timeout (disabled for smooth game loop) */
+  ENABLE_AUTO_CTA: false,
+  /** Input failsafe timeout - auto-enable if blocked (ms) */
+  INPUT_FAILSAFE_TIMEOUT: 5000,
+  /** Idle cue timeout - show hint after inactivity (ms) */
+  IDLE_CUE_TIMEOUT: 3000,
+  /** Enable idle engagement cue (will be enabled after tutorial interaction) */
+  ENABLE_IDLE_CUE: false,
+} as const;
+
+/**
  * Game state constants
  */
 export const GAME_STATE = {
@@ -257,6 +301,7 @@ export type GameState = (typeof GAME_STATE)[keyof typeof GAME_STATE];
 export const GameConfig = {
   ANIMATION: ANIMATION_CONFIG,
   CAMERA: CAMERA_CONFIG,
+  LIGHTING: LIGHTING_CONFIG,
   INPUT: INPUT_CONFIG,
   BLOCK: BLOCK_CONFIG,
   COLOR: COLOR_CONFIG,
@@ -265,6 +310,7 @@ export const GameConfig = {
   UI: UI_CONFIG,
   CONFETTI: CONFETTI_CONFIG,
   PERFORMANCE: PERFORMANCE_CONFIG,
+  PLAYABLE_AD: PLAYABLE_AD_CONFIG,
   STATE: GAME_STATE,
 } as const;
 

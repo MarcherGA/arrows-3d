@@ -1,4 +1,5 @@
 import { Mesh, Vector3, Matrix, Quaternion } from "@babylonjs/core";
+import { GameConfig } from "../config/GameConfig";
 
 /**
  * Position and rotate an arrow mesh on a cube face
@@ -9,7 +10,7 @@ export function positionArrowOnFace(
   arrowDirection: Vector3,
   cubeSize: number = 1.0
 ): void {
-  const offset = cubeSize * 0.5 +0.01;
+  const offset = cubeSize * 0.5 + GameConfig.BLOCK.ARROW_FACE_OFFSET;
 
   arrowMesh.position = faceNormal.scale(offset);
 

@@ -1,48 +1,10 @@
 import { Scene, Vector3 } from "@babylonjs/core";
 import { GameManager } from "../game/GameManager";
 import { Block } from "../entities/Block";
+import { GameConfig } from "../config/GameConfig";
 
-/**
- * Configuration constants for tutorial timing and positioning
- */
-const TUTORIAL_CONFIG = {
-  // Timing
-  INITIAL_LOAD_DELAY: 300,
-  FINGER_MOVEMENT_DURATION: 600,
-  FINGER_ARRIVE_DELAY: 700,
-  PRESS_MIDPOINT_DELAY: 300,
-  SHAKE_ANIMATION_DELAY: 400,
-  BLOCK_FLY_AWAY_DELAY: 400,
-  SPIN_STEP_DELAY: 50,
-  SPIN_END_DELAY: 200,
-  FINGER_SHOW_DELAY: 200,
-  BOUNCE_REPEAT_COUNT: 3,
-  BOUNCE_DELAY: 400,
-  BOUNCE_PAUSE_DELAY: 1000,
-  BLOCK_CHECK_INTERVAL: 100,
-
-  // Positioning
-  SPIN_DISTANCE: 120,
-  SPIN_STEPS: 15,
-  SPIN_ROTATION_AMOUNT: 0.05,
-  SPIN_ARC_HEIGHT: 20,
-  BLOCKED_BLOCK_OFFSET_X: 40,
-  BLOCKED_BLOCK_OFFSET_Y: 40,
-  BLOCKING_BLOCK_OFFSET_X: 60,
-  BLOCKING_BLOCK_OFFSET_Y: 60,
-  TARGET_BLOCK_OFFSET_X: 30,
-  TARGET_BLOCK_OFFSET_Y: 70,
-
-  // Grid positions for demonstration blocks
-  BLOCKED_BLOCK_POS: { x: 0, y: 2, z: 1 },
-  BLOCKING_BLOCK_POS: { x: 0, y: 2, z: 2 },
-
-  // Animation
-  PRESS_ANIMATION_DURATION: 150,
-  PRESS_SCALE: 0.85,
-  BOUNCE_DISTANCE: 20,
-  BOUNCE_ANIMATION_DURATION: 200,
-} as const;
+// Use centralized tutorial config
+const TUTORIAL_CONFIG = GameConfig.TUTORIAL;
 
 /**
  * Position offset for finger pointer
@@ -67,6 +29,8 @@ export class AutoplayManager {
   private fingerElement: HTMLElement | null = null;
   private isPlaying: boolean = false;
   private blockCheckInterval: number | null = null;
+  private userInteracted: boolean = false;
+  private interactionListener?: () => void;
 
   constructor(scene: Scene, gameManager: GameManager) {
     this.scene = scene;
@@ -82,13 +46,77 @@ export class AutoplayManager {
 
     this.isPlaying = true;
     this.gameManager.enableInput();
+    this.setupEarlyBreakInListener();
     this.setCanvasPointerEvents(false);
 
     await this.wait(TUTORIAL_CONFIG.INITIAL_LOAD_DELAY);
 
+    // Allow early break-in during spin demo
+    if (this.userInteracted) {
+      this.skipToInteractive();
+      return;
+    }
+
     await this.demonstrateSpinning();
+
+    if (this.userInteracted) {
+      this.skipToInteractive();
+      return;
+    }
+
     await this.demonstrateBlockingMechanic();
+
+    if (this.userInteracted) {
+      this.skipToInteractive();
+      return;
+    }
+
     await this.loopPointingToFirstMove();
+  }
+
+  /**
+   * Setup listener for early user interaction
+   */
+  private setupEarlyBreakInListener(): void {
+    const canvas = this.scene.getEngine().getRenderingCanvas();
+    if (!canvas) return;
+
+    this.interactionListener = () => {
+      if (!this.userInteracted && this.isPlaying) {
+        console.log("👆 User interacted early - skipping tutorial");
+        this.userInteracted = true;
+      }
+    };
+
+    // Listen for any pointer events on canvas
+    canvas.addEventListener('pointerdown', this.interactionListener, { passive: true });
+    canvas.addEventListener('pointermove', this.interactionListener, { passive: true });
+  }
+
+  /**
+   * Remove early break-in listener
+   */
+  private removeEarlyBreakInListener(): void {
+    const canvas = this.scene.getEngine().getRenderingCanvas();
+    if (!canvas || !this.interactionListener) return;
+
+    canvas.removeEventListener('pointerdown', this.interactionListener);
+    canvas.removeEventListener('pointermove', this.interactionListener);
+    this.interactionListener = undefined;
+  }
+
+  /**
+   * Skip to interactive mode when user breaks in early
+   */
+  private skipToInteractive(): void {
+    console.log("⏩ Skipping to interactive mode");
+    this.hideFinger();
+    this.removeEarlyBreakInListener();
+    this.enableFullInput();
+    this.isPlaying = false;
+
+    // Enable idle cue after user interaction
+    this.gameManager.enableIdleCue();
   }
 
   /**
@@ -97,6 +125,7 @@ export class AutoplayManager {
   public stop(): void {
     this.isPlaying = false;
     this.clearBlockCheckInterval();
+    this.removeEarlyBreakInListener();
     this.hideFinger();
     this.enableFullInput();
   }
@@ -462,6 +491,9 @@ export class AutoplayManager {
     this.isPlaying = false;
     this.hideFinger();
     this.enableFullInput();
+
+    // Enable idle cue after user clicks target block
+    this.gameManager.enableIdleCue();
   }
 
   // ==================== Helper Methods ====================
@@ -528,12 +560,12 @@ export class AutoplayManager {
   private createFingerElement(): void {
     this.fingerElement = document.createElement("div");
     this.fingerElement.id = "tutorialFinger";
-    this.fingerElement.innerHTML = "👆";
+    this.fingerElement.innerHTML = TUTORIAL_CONFIG.FINGER_EMOJI;
     this.fingerElement.style.cssText = `
       position: fixed;
-      font-size: 48px;
+      font-size: ${TUTORIAL_CONFIG.FINGER_SIZE};
       pointer-events: none;
-      z-index: 1000;
+      z-index: ${TUTORIAL_CONFIG.FINGER_Z_INDEX};
       display: none;
       transform: translate(-50%, -50%);
       filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));

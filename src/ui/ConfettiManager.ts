@@ -1,3 +1,5 @@
+import { GameConfig } from '../config/GameConfig';
+
 /**
  * Manages confetti animation that plays when level is completed
  */
@@ -6,9 +8,6 @@ export class ConfettiManager {
   private animationInterval: number | null = null;
   private isPlaying: boolean = false;
   private confettiPieces: HTMLElement[] = [];
-
-  // Configuration
-  private readonly SPAWN_INTERVAL = 150; // milliseconds between confetti spawns
 
   constructor() {
     this.createConfettiContainer();
@@ -77,7 +76,7 @@ export class ConfettiManager {
       if (this.isPlaying) {
         this.createConfettiPiece();
       }
-    }, this.SPAWN_INTERVAL);
+    }, GameConfig.CONFETTI.SPAWN_INTERVAL);
   }
 
   /**
@@ -89,15 +88,15 @@ export class ConfettiManager {
     const confetti = document.createElement('div');
     confetti.className = 'confetti-piece';
 
-    // Random colors
-    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f7dc6f', '#bb8fce', '#85c1e2', '#52c7b8', '#ffa07a'];
+    // Random colors from config
+    const colors = GameConfig.CONFETTI.COLORS;
     const color = colors[Math.floor(Math.random() * colors.length)];
 
     // Random starting position across the top
     const startX = Math.random() * 100;
 
     // Random animation properties
-    const duration = 2000 + Math.random() * 2000; // 2-4 seconds
+    const duration = GameConfig.CONFETTI.MIN_DURATION + Math.random() * (GameConfig.CONFETTI.MAX_DURATION - GameConfig.CONFETTI.MIN_DURATION);
     const delay = Math.random() * 200; // 0-200ms delay
     const rotation = Math.random() * 360; // Random initial rotation
     const sway = 50 + Math.random() * 100; // How much it sways side to side

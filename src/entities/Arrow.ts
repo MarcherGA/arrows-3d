@@ -3,22 +3,19 @@ import {
   Mesh,
   Vector3,
   MeshBuilder,
-  StandardMaterial,
-  Texture,
   Matrix,
   Quaternion,
 } from "@babylonjs/core";
 import { GameConfig } from "../config/GameConfig";
 import { positionArrowOnFace } from "../systems/ArrowSystem";
 import { Direction } from "./Block";
+import { MaterialManager } from "../systems/MaterialManager";
 
 /**
  * Arrow indicator that shows on block faces
  */
 export class Arrow {
   private mesh: Mesh;
-  private scene: Scene;
-  private static sharedTexture: Texture | null = null;
 
   /**
    * Create an arrow on a specific face pointing in a direction
@@ -33,8 +30,6 @@ export class Arrow {
     pointingDirection: Direction,
     parent: Mesh | any
   ) {
-    this.scene = scene;
-
     // Create arrow plane
     const { ARROW_SIZE } = GameConfig.BLOCK;
     this.mesh = MeshBuilder.CreatePlane(
@@ -44,34 +39,17 @@ export class Arrow {
     );
     this.mesh.parent = parent;
 
-    // Create or reuse texture
-    if (!Arrow.sharedTexture) {
-      Arrow.sharedTexture = this.createArrowTexture();
-    }
-
-    // Create material
-    const material = new StandardMaterial("arrowMat_" + Math.random(), scene);
-    material.emissiveColor = GameConfig.COLOR.ARROW_COLOR;
-    material.disableLighting = true;
-    material.backFaceCulling = true;
-    material.diffuseTexture = Arrow.sharedTexture;
-    material.opacityTexture = Arrow.sharedTexture;
-    material.useAlphaFromDiffuseTexture = true;
-    material.disableDepthWrite = false;
-    this.mesh.material = material;
+    // Use shared material from MaterialManager
+    const materialManager = MaterialManager.getInstance(scene);
+    this.mesh.material = materialManager.getArrowMaterial(
+      GameConfig.COLOR.ARROW_COLOR,
+      "/icons/brown-arrow.png"
+    );
     this.mesh.renderingGroupId = 0;
     this.mesh.isPickable = false;
 
     // Position and orient the arrow
     this.positionAndOrient(face, pointingDirection);
-  }
-
-  /**
-   * Create arrow texture (shared across all arrows)
-   */
-  private createArrowTexture(): Texture {
-    const texture = new Texture("/icons/brown-arrow.png", this.scene);
-    return texture;
   }
 
   /**

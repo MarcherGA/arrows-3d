@@ -76,7 +76,7 @@ class Game {
     // Transparent background to show HTML background image
     scene.clearColor = new Color4(0, 0, 0, 0);
 
-    const { INITIAL_ALPHA, INITIAL_BETA, INITIAL_RADIUS, MIN_RADIUS, MAX_RADIUS, BETA_MIN, BETA_MAX } =
+    const { INITIAL_ALPHA, INITIAL_BETA, INITIAL_RADIUS, ENABLE_ZOOM, MIN_RADIUS, MAX_RADIUS, BETA_MIN, BETA_MAX } =
       GameConfig.CAMERA;
 
     // Setup camera
@@ -91,30 +91,39 @@ class Game {
     camera.attachControl(this.canvas, true);
 
     // Camera limits
-    camera.lowerRadiusLimit = MIN_RADIUS;
-    camera.upperRadiusLimit = MAX_RADIUS;
+    if (ENABLE_ZOOM) {
+      // Allow user to zoom in/out
+      camera.lowerRadiusLimit = MIN_RADIUS;
+      camera.upperRadiusLimit = MAX_RADIUS;
+    } else {
+      // Lock zoom - but allow levels to set different distances
+      camera.lowerRadiusLimit = MIN_RADIUS;
+      camera.upperRadiusLimit = MAX_RADIUS;
+    }
     camera.lowerBetaLimit = BETA_MIN;
     camera.upperBetaLimit = BETA_MAX;
 
     // Disable default camera rotation (we rotate the objects instead)
     camera.inputs.removeByType("ArcRotateCameraPointersInput");
 
+    const { HEMISPHERIC_INTENSITY, HEMISPHERIC_DIRECTION, DIRECTIONAL_INTENSITY, DIRECTIONAL_DIRECTION, DIRECTIONAL_POSITION } = GameConfig.LIGHTING;
+
     // Hemispheric light for ambient lighting
     const hemisphericLight = new HemisphericLight(
       "hemisphericLight",
-      new Vector3(0, 1, 0),
+      new Vector3(HEMISPHERIC_DIRECTION.x, HEMISPHERIC_DIRECTION.y, HEMISPHERIC_DIRECTION.z),
       scene
     );
-    hemisphericLight.intensity = 1.5;
+    hemisphericLight.intensity = HEMISPHERIC_INTENSITY;
 
     // Directional light for shadows and depth
     const directionalLight = new DirectionalLight(
       "directionalLight",
-      new Vector3(-1, -2, -1),
+      new Vector3(DIRECTIONAL_DIRECTION.x, DIRECTIONAL_DIRECTION.y, DIRECTIONAL_DIRECTION.z),
       scene
     );
-    directionalLight.position = new Vector3(10, 20, 10);
-    directionalLight.intensity = 0.2;
+    directionalLight.position = new Vector3(DIRECTIONAL_POSITION.x, DIRECTIONAL_POSITION.y, DIRECTIONAL_POSITION.z);
+    directionalLight.intensity = DIRECTIONAL_INTENSITY;
 
     return scene;
   }
@@ -128,7 +137,7 @@ class Game {
       console.log("🎉 You won!");
       setTimeout(() => {
         this.uiManager.showWinOverlay();
-      }, 500);
+      }, GameConfig.UI.WIN_OVERLAY_DELAY);
     });
 
     // Setup overlay button handlers
@@ -146,6 +155,13 @@ class Game {
     // Track block removal
     this.gameManager.onBlockRemoved((remaining) => {
       console.log(`Blocks remaining: ${remaining}`);
+    });
+
+    // Handle timeout (idle or max engagement time)
+    this.gameManager.onTimeout(() => {
+      console.log("⏰ Timeout triggered - showing CTA");
+      // Show win overlay as CTA (in real playable ad, this would trigger app store redirect)
+      this.uiManager.showWinOverlay();
     });
   }
 

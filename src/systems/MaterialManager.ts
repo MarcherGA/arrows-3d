@@ -77,6 +77,40 @@ export class MaterialManager {
   }
 
   /**
+   * Get or create arrow material (shared across all arrows)
+   * Returns cached material if one exists, otherwise creates new one
+   */
+  public getArrowMaterial(color: Color3, textureUrl: string): StandardMaterial {
+    const key = `arrow_mat_${getMaterialKey(color)}`;
+
+    let material = this.materials.get(key);
+    if (!material) {
+      material = this.createArrowMaterial(color, textureUrl, key);
+      this.materials.set(key, material);
+    }
+
+    return material;
+  }
+
+  /**
+   * Create a new arrow material with texture
+   */
+  private createArrowMaterial(color: Color3, textureUrl: string, name: string): StandardMaterial {
+    const material = new StandardMaterial(name, this.scene);
+    const texture = this.getTexture(textureUrl);
+
+    material.emissiveColor = color;
+    material.disableLighting = true;
+    material.backFaceCulling = true;
+    material.diffuseTexture = texture;
+    material.opacityTexture = texture;
+    material.useAlphaFromDiffuseTexture = true;
+    material.disableDepthWrite = false;
+
+    return material;
+  }
+
+  /**
    * Create a new colored material
    */
   private createColorMaterial(color: Color3, name: string): StandardMaterial {
