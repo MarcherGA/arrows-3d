@@ -8,7 +8,7 @@ import {
   Color4,
 } from "@babylonjs/core";
 import { GameManager } from "./game/GameManager";
-import { Level1 } from "./levels/Level1";
+import "./levels"; // Import levels to auto-register them
 import { GameConfig } from "./config/GameConfig";
 import { UIManager } from "./ui/UIManager";
 import { AutoplayManager } from "./tutorial/AutoplayManager";
@@ -140,7 +140,7 @@ class Game {
 
     this.uiManager.onPlayButton(() => {
       this.uiManager.hideWinOverlay();
-      this.gameManager.restart(Level1);
+      this.gameManager.loadNextLevel();
     });
 
     // Track block removal
@@ -179,8 +179,8 @@ class Game {
       // Game continues without audio
     });
 
-    // Load first level immediately (don't wait for audio)
-    this.gameManager.loadLevel(Level1);
+    // Start game from level 1 (don't wait for audio)
+    this.gameManager.startGame();
 
     // Wait for everything to be fully loaded and rendered
     await new Promise(resolve => setTimeout(resolve, 1000));

@@ -1,6 +1,6 @@
 import { Vector3 } from "@babylonjs/core";
 import { GameConfig } from "../config/GameConfig";
-import type { BlockData } from "./Level1";
+import type { BlockData } from "./types";
 
 /**
  * Extended block data with grid and world positions

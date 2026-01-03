@@ -4,8 +4,9 @@ import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
 import { OccupancyGrid } from "../systems/OccupancyGrid";
-import type { LevelData } from "../levels/Level1";
+import type { LevelData } from "../levels/types";
 import { LevelParser } from "../levels/LevelParser";
+import { LevelRegistry } from "../levels/LevelRegistry";
 import { GameConfig, GAME_STATE } from "../config/GameConfig";
 import { UIManager } from "../ui/UIManager";
 import { SoundManager, SoundType } from "../audio/SoundManager";
@@ -31,6 +32,7 @@ export class GameManager {
   private restrictedBlock: Block | null = null; // For tutorial mode
   private inputBlocked: boolean = true; // Block input during initialization
   private soundManager: SoundManager;
+  private currentLevelNumber: number = 1; // Track current level
 
   constructor(scene: Scene, uiManager: UIManager, soundManager: SoundManager) {
     this.scene = scene;
@@ -45,11 +47,30 @@ export class GameManager {
   }
 
   /**
+   * Start the game from level 1
+   */
+  public startGame(): void {
+    this.currentLevelNumber = 1;
+    this.loadCurrentLevel();
+  }
+
+  /**
+   * Load the current level by number
+   */
+  private loadCurrentLevel(): void {
+    const levelData = LevelRegistry.getLevelOrDefault(this.currentLevelNumber);
+    this.loadLevel(levelData);
+  }
+
+  /**
    * Load a level and instantiate all blocks
    */
   public loadLevel(levelData: LevelData): void {
     // Clear existing blocks
     this.clearLevel();
+
+    // Update current level number
+    this.currentLevelNumber = levelData.levelNumber;
 
     // Update UI with level number
     this.uiManager.setLevel(levelData.levelNumber);
@@ -91,6 +112,18 @@ export class GameManager {
     this.validationSystem.updateAllBlockStates(this.blocks);
 
     this.gameState = GameState.PLAYING;
+  }
+
+  /**
+   * Load next level (or loop back to level 1)
+   */
+  public loadNextLevel(): void {
+    const totalLevels = LevelRegistry.getLevelCount();
+
+    // Move to next level or loop back to 1
+    this.currentLevelNumber = (this.currentLevelNumber % totalLevels) + 1;
+
+    this.loadCurrentLevel();
   }
 
   /**
@@ -242,6 +275,13 @@ export class GameManager {
 
   /**
    * Restart the current level
+   */
+  public restartCurrentLevel(): void {
+    this.loadCurrentLevel();
+  }
+
+  /**
+   * @deprecated Use restartCurrentLevel() or loadLevel() instead
    */
   public restart(levelData: LevelData): void {
     this.loadLevel(levelData);
