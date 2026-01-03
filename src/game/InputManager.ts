@@ -1,6 +1,6 @@
 import { Scene, PointerEventTypes, PointerInfo } from "@babylonjs/core";
 import { Block } from "../entities/Block";
-import { POINTER } from "../constants";
+import { GameConfig } from "../config/GameConfig";
 
 /**
  * Event types emitted by InputManager
@@ -108,8 +108,9 @@ export class InputManager {
       // Check if movement exceeds threshold
       const totalDeltaX = Math.abs(currentX - this.startPointerX);
       const totalDeltaY = Math.abs(currentY - this.startPointerY);
+      const { DRAG_THRESHOLD } = GameConfig.INPUT;
 
-      if (totalDeltaX > POINTER.DRAG_THRESHOLD || totalDeltaY > POINTER.DRAG_THRESHOLD) {
+      if (totalDeltaX > DRAG_THRESHOLD || totalDeltaY > DRAG_THRESHOLD) {
         this.emit({
           type: "structureRotated",
           deltaX,
@@ -133,9 +134,10 @@ export class InputManager {
 
     const totalDeltaX = Math.abs(this.scene.pointerX - this.startPointerX);
     const totalDeltaY = Math.abs(this.scene.pointerY - this.startPointerY);
+    const { DRAG_THRESHOLD } = GameConfig.INPUT;
 
     // If movement was minimal, treat as click
-    if (totalDeltaX <= POINTER.DRAG_THRESHOLD && totalDeltaY <= POINTER.DRAG_THRESHOLD) {
+    if (totalDeltaX <= DRAG_THRESHOLD && totalDeltaY <= DRAG_THRESHOLD) {
       const pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY);
 
       if (pickResult && pickResult.hit && pickResult.pickedMesh) {

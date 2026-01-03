@@ -1,5 +1,5 @@
 import { Vector3 } from "@babylonjs/core";
-import { BLOCK } from "../constants";
+import { GameConfig } from "../config/GameConfig";
 import type { BlockData } from "./Level1";
 
 /**
@@ -76,7 +76,8 @@ export class LevelParser {
   private static gridToWorld(gridPos: Vector3): Vector3 {
     // Each grid cell = 1 visual unit + gap
     // Spacing includes the visual size plus gap
-    const spacing = BLOCK.SCALE + BLOCK.GAP;
+    const { SCALE, GAP } = GameConfig.BLOCK;
+    const spacing = SCALE + GAP;
 
     return new Vector3(
       gridPos.x * spacing,
@@ -93,10 +94,11 @@ export class LevelParser {
   private static gridSizeToVisualSize(gridSize: Vector3): Vector3 {
     // Visual size = number of cells * cell size, plus gaps between cells within the block
     // For a 3-cell block: cell + gap + cell + gap + cell = 3 cells + 2 gaps
+    const { SCALE, GAP } = GameConfig.BLOCK;
     return new Vector3(
-      gridSize.x * BLOCK.SCALE + (gridSize.x - 1) * BLOCK.GAP,
-      gridSize.y * BLOCK.SCALE + (gridSize.y - 1) * BLOCK.GAP,
-      gridSize.z * BLOCK.SCALE + (gridSize.z - 1) * BLOCK.GAP
+      gridSize.x * SCALE + (gridSize.x - 1) * GAP,
+      gridSize.y * SCALE + (gridSize.y - 1) * GAP,
+      gridSize.z * SCALE + (gridSize.z - 1) * GAP
     );
   }
 }

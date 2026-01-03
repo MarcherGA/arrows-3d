@@ -4,12 +4,11 @@ import {
   Vector3,
   MeshBuilder,
   StandardMaterial,
-  Color3,
   Texture,
   Matrix,
   Quaternion,
 } from "@babylonjs/core";
-import { BLOCK, COLORS } from "../constants";
+import { GameConfig } from "../config/GameConfig";
 import { positionArrowOnFace } from "../systems/ArrowSystem";
 import { Direction } from "./Block";
 
@@ -37,9 +36,10 @@ export class Arrow {
     this.scene = scene;
 
     // Create arrow plane
+    const { ARROW_SIZE } = GameConfig.BLOCK;
     this.mesh = MeshBuilder.CreatePlane(
       "arrow",
-      { width: BLOCK.ARROW_SIZE, height: BLOCK.ARROW_SIZE },
+      { width: ARROW_SIZE, height: ARROW_SIZE },
       scene
     );
     this.mesh.parent = parent;
@@ -51,11 +51,7 @@ export class Arrow {
 
     // Create material
     const material = new StandardMaterial("arrowMat_" + Math.random(), scene);
-    material.emissiveColor = new Color3(
-      COLORS.ARROW_COLOR.r,
-      COLORS.ARROW_COLOR.g,
-      COLORS.ARROW_COLOR.b
-    );
+    material.emissiveColor = GameConfig.COLOR.ARROW_COLOR;
     material.disableLighting = true;
     material.backFaceCulling = true;
     material.diffuseTexture = Arrow.sharedTexture;
