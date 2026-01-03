@@ -212,8 +212,18 @@ export class Block {
       this.mesh.dispose();
     }
 
-    // Create instance
-    this.mesh = Block.sharedBeveledBox.createInstance("block");
+    // Check if we need custom material (KEY, LOCKED, or custom color)
+    const needsCustomMaterial = color || this._blockType === BlockType.KEY || this._blockType === BlockType.LOCKED;
+
+    if (needsCustomMaterial) {
+      // Use clone instead of instance for blocks that need custom materials
+      // Instances share materials with parent, clones can have their own
+      this.mesh = Block.sharedBeveledBox.clone("block", null, false);
+    } else {
+      // Use instance for standard blocks (better performance)
+      this.mesh = Block.sharedBeveledBox.createInstance("block");
+    }
+
     this.mesh.scaling = visualSize;
     // Position at corner + half the visual size to center the mesh
     this.mesh.position = worldPosition.add(visualSize.scale(0.5));
@@ -328,7 +338,7 @@ export class Block {
     ];
 
     const visualSize = this.gridSizeToVisualSize(this._gridSize);
-    const lockTexture = this.materialManager.getTexture("/textures/lock-chain.jpg");
+    const lockTexture = this.materialManager.getTexture("/textures/lock-chain.png");
 
     for (const face of allFaces) {
       // Create a plane for this face

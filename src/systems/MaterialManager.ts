@@ -81,7 +81,9 @@ export class MaterialManager {
    * Returns cached material if one exists, otherwise creates new one
    */
   public getArrowMaterial(color: Color3, textureUrl: string): StandardMaterial {
-    const key = `arrow_mat_${getMaterialKey(color)}`;
+    // Include texture URL in cache key to prevent color conflicts
+    const textureKey = textureUrl.replace(/[^a-zA-Z0-9]/g, '_');
+    const key = `arrow_mat_${getMaterialKey(color)}_${textureKey}`;
 
     let material = this.materials.get(key);
     if (!material) {
@@ -99,14 +101,13 @@ export class MaterialManager {
     const material = new StandardMaterial(name, this.scene);
     const texture = this.getTexture(textureUrl);
 
-    // Use diffuseColor to allow texture color multiplication
-    material.diffuseColor = color;
-    material.emissiveColor = color;
-    material.disableLighting = true;
-    material.backFaceCulling = true;
-    material.diffuseTexture = texture;
-    material.opacityTexture = texture;
+    // Enable lighting and use emissive for glow effect with color multiplication
+    material.diffuseColor = new Color3(0, 0, 0); // No diffuse (prevents double-lighting)
+    material.emissiveColor = color; // Use color as emissive (self-illuminated)
+    material.emissiveTexture = texture; // Multiply emissive by texture
+    material.opacityTexture = texture; // Use texture alpha for transparency
     material.useAlphaFromDiffuseTexture = true;
+    material.backFaceCulling = true;
     material.disableDepthWrite = false;
 
     return material;
