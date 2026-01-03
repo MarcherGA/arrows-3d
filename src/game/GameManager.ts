@@ -40,7 +40,6 @@ export class GameManager {
   private onTimeoutCallback?: () => void;
   private inputFailsafeTimer?: number;
   private idleCueTimer?: number;
-  private currentIdleCueBlock?: Block;
   private idleCueEnabled: boolean = false; // Track if idle cue has been enabled
 
   constructor(scene: Scene, uiManager: UIManager, soundManager: SoundManager) {
@@ -83,17 +82,18 @@ export class GameManager {
    * Reset idle timer (called on any user interaction)
    */
   private resetIdleTimer(): void {
-    if (!GameConfig.PLAYABLE_AD.ENABLE_AUTO_CTA) return;
+    // Reset idle CTA timer if enabled
+    if (GameConfig.PLAYABLE_AD.ENABLE_AUTO_CTA) {
+      if (this.idleTimer) {
+        clearTimeout(this.idleTimer);
+      }
 
-    if (this.idleTimer) {
-      clearTimeout(this.idleTimer);
+      this.idleTimer = window.setTimeout(() => {
+        this.handleIdleTimeout();
+      }, GameConfig.PLAYABLE_AD.IDLE_TIMEOUT);
     }
 
-    this.idleTimer = window.setTimeout(() => {
-      this.handleIdleTimeout();
-    }, GameConfig.PLAYABLE_AD.IDLE_TIMEOUT);
-
-    // Also reset idle cue timer
+    // Always reset idle cue timer (independent of auto-CTA)
     this.resetIdleCueTimer();
   }
 
@@ -104,14 +104,9 @@ export class GameManager {
     // Check if idle cue is enabled (either by config or dynamically)
     if (!GameConfig.PLAYABLE_AD.ENABLE_IDLE_CUE && !this.idleCueEnabled) return;
 
-    // Clear existing cue timer and animation
+    // Clear existing cue timer
     if (this.idleCueTimer) {
       clearTimeout(this.idleCueTimer);
-    }
-
-    // Clear any existing idle cue animation
-    if (this.currentIdleCueBlock) {
-      this.currentIdleCueBlock = undefined;
     }
 
     // Start new idle cue timer
@@ -132,10 +127,14 @@ export class GameManager {
     });
 
     if (removableBlock) {
-      this.currentIdleCueBlock = removableBlock;
       // Trigger a gentle shake/pulse as a hint
       removableBlock.shake();
     }
+
+    // Restart the idle cue timer to keep showing hints periodically
+    this.idleCueTimer = window.setTimeout(() => {
+      this.showIdleCue();
+    }, GameConfig.PLAYABLE_AD.IDLE_CUE_TIMEOUT);
   }
 
   /**
