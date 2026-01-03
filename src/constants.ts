@@ -1,49 +1,36 @@
 /**
- * Game constants for consistent behavior across the application
+ * @deprecated This file is deprecated. Use GameConfig from '../config/GameConfig' instead.
+ *
+ * Legacy constants file - maintained for backward compatibility
+ * All new code should import from GameConfig instead
  */
 
-export const ANIMATION = {
-  FLY_AWAY_DURATION_MS: 400,
-  FLY_AWAY_DISTANCE: 8,
-  SHAKE_DURATION_MS: 150,
-  SHAKE_DISTANCE: 0.15,
-  FPS: 60,
-} as const;
+import { GameConfig } from "./config/GameConfig";
 
-export const CAMERA = {
-  INITIAL_ALPHA: -Math.PI / 2,
-  INITIAL_BETA: Math.PI / 3,
-  INITIAL_RADIUS: 20,
-  MIN_RADIUS: 20,
-  MAX_RADIUS: 20,
-  ALPHA_MIN: 0,
-  ALPHA_MAX: 2 * Math.PI,
-  BETA_MIN: Math.PI / 6,
-  BETA_MAX: (Math.PI / 2) - 0.1,
-  ROTATION_SENSITIVITY: 0.005,
-} as const;
+// Re-export from GameConfig for backward compatibility
+export const ANIMATION = GameConfig.ANIMATION;
+export const CAMERA = GameConfig.CAMERA;
+export const POINTER = GameConfig.INPUT;
+export const BLOCK = GameConfig.BLOCK;
 
-export const POINTER = {
-  DRAG_THRESHOLD: 3,
-} as const;
-
-export const BLOCK = {
-  SCALE: 1, // Visual size of one grid cell
-  GAP: 0.05, // Gap between blocks (in world units)
-  ARROW_SIZE: 1.25,
-} as const;
-
+// Convert Color3 back to legacy format for backward compatibility
 export const COLORS = {
-  BLOCK_DEFAULT: { r: 0.8, g: 0.6, b: 0.4 },
-  ARROW_COLOR: { r: 1, g: 1, b: 1 },
-  BACKGROUND: { r: 0.2, g: 0.3, b: 0.4, a: 1 },
+  BLOCK_DEFAULT: {
+    r: GameConfig.COLOR.BLOCK_DEFAULT.r,
+    g: GameConfig.COLOR.BLOCK_DEFAULT.g,
+    b: GameConfig.COLOR.BLOCK_DEFAULT.b,
+  },
+  ARROW_COLOR: {
+    r: GameConfig.COLOR.ARROW_COLOR.r,
+    g: GameConfig.COLOR.ARROW_COLOR.g,
+    b: GameConfig.COLOR.ARROW_COLOR.b,
+  },
+  BACKGROUND: {
+    r: GameConfig.COLOR.BACKGROUND.r,
+    g: GameConfig.COLOR.BACKGROUND.g,
+    b: GameConfig.COLOR.BACKGROUND.b,
+    a: GameConfig.COLOR.BACKGROUND.a,
+  },
 } as const;
 
-export const AUDIO = {
-  MASTER_VOLUME: 1.0,
-  SFX_VOLUME: 1.0,
-  MUSIC_VOLUME: 0.3,
-  BLOCK_CLICKED_VOLUME: 0.6,
-  BLOCK_BLOCKED_VOLUME: 0.7,
-  LEVEL_COMPLETE_VOLUME: 0.8,
-} as const;
+export const AUDIO = GameConfig.AUDIO;

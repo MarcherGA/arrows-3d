@@ -6,20 +6,13 @@ import { ValidationSystem } from "../systems/ValidationSystem";
 import { OccupancyGrid } from "../systems/OccupancyGrid";
 import type { LevelData } from "../levels/Level1";
 import { LevelParser } from "../levels/LevelParser";
-import { CAMERA } from "../constants";
+import { GameConfig, GAME_STATE } from "../config/GameConfig";
 import { UIManager } from "../ui/UIManager";
 import { SoundManager, SoundType } from "../audio/SoundManager";
 
-/**
- * Game state enum
- */
-export const GameState = {
-  PLAYING: "PLAYING",
-  WON: "WON",
-  PAUSED: "PAUSED",
-} as const;
-
-export type GameState = typeof GameState[keyof typeof GameState];
+// Re-export for backward compatibility
+export const GameState = GAME_STATE;
+export type GameState = typeof GAME_STATE[keyof typeof GAME_STATE];
 
 /**
  * Orchestrates gameplay, manages blocks, and handles game state
@@ -211,11 +204,13 @@ export class GameManager {
     const cameraRight = camera.getDirection(new Vector3(1, 0, 0));
     const cameraUp = camera.getDirection(new Vector3(0, 1, 0));
 
+    const { ROTATION_SENSITIVITY } = GameConfig.CAMERA;
+
     // Apply rotation around camera's up axis (for horizontal drag)
     if (deltaX !== 0) {
       this.blockContainer.rotate(
         cameraUp,
-        -deltaX * CAMERA.ROTATION_SENSITIVITY,
+        -deltaX * ROTATION_SENSITIVITY,
         1 // BABYLON.Space.WORLD
       );
     }
@@ -224,7 +219,7 @@ export class GameManager {
     if (deltaY !== 0) {
       this.blockContainer.rotate(
         cameraRight,
-        -deltaY * CAMERA.ROTATION_SENSITIVITY,
+        -deltaY * ROTATION_SENSITIVITY,
         1 // BABYLON.Space.WORLD
       );
     }

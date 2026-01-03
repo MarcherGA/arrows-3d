@@ -1,12 +1,19 @@
 import { Vector3 } from "@babylonjs/core";
 import { Block } from "../entities/Block";
 import { OccupancyGrid } from "./OccupancyGrid";
+import { Vector3Pool } from "./ObjectPool";
 
 /**
  * Validates block removal logic using grid-based collision detection
+ * Uses object pooling to reduce garbage collection pressure
  */
 export class ValidationSystem {
   private occupancyGrid!: OccupancyGrid;
+  private readonly vectorPool: Vector3Pool;
+
+  constructor() {
+    this.vectorPool = Vector3Pool.getInstance();
+  }
 
   /**
    * Set the occupancy grid to use for validation
@@ -23,13 +30,18 @@ export class ValidationSystem {
   public checkBlockRemoval(block: Block): { isRemovable: boolean; blockingBlock?: Block } {
     const gridDir = this.getGridDirection(block.arrowDirection);
 
-    // Find the first block blocking this block's path
-    const blockingBlock = this.occupancyGrid.getBlockingBlock(block, gridDir);
+    try {
+      // Find the first block blocking this block's path
+      const blockingBlock = this.occupancyGrid.getBlockingBlock(block, gridDir);
 
-    return {
-      isRemovable: !blockingBlock,
-      blockingBlock: blockingBlock,
-    };
+      return {
+        isRemovable: !blockingBlock,
+        blockingBlock: blockingBlock,
+      };
+    } finally {
+      // Always release the pooled vector
+      this.vectorPool.release(gridDir);
+    }
   }
 
   /**
@@ -44,13 +56,16 @@ export class ValidationSystem {
 
   /**
    * Convert world direction to grid direction (normalize to -1, 0, 1)
+   * Uses object pooling to reduce allocations
    */
   private getGridDirection(worldDirection: Vector3): Vector3 {
-    return new Vector3(
+    const gridDir = this.vectorPool.acquire();
+    gridDir.set(
       Math.sign(worldDirection.x),
       Math.sign(worldDirection.y),
       Math.sign(worldDirection.z)
     );
+    return gridDir;
   }
 
   /**

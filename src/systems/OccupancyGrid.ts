@@ -1,8 +1,11 @@
 import { Vector3 } from "@babylonjs/core";
 import { Block } from "../entities/Block";
+import { Vector3Pool } from "./ObjectPool";
+import { GameConfig } from "../config/GameConfig";
 
 /**
  * Simple grid-based spatial data structure for tracking block occupancy
+ * Uses object pooling to reduce Vector3 allocations in hot paths
  *
  * Purpose:
  * - Track which blocks occupy which grid cells
@@ -10,9 +13,11 @@ import { Block } from "../entities/Block";
  */
 export class OccupancyGrid {
   private grid: Map<string, Block>;
+  private readonly vectorPool: Vector3Pool;
 
   constructor() {
     this.grid = new Map();
+    this.vectorPool = Vector3Pool.getInstance();
   }
 
   /**
@@ -71,6 +76,7 @@ export class OccupancyGrid {
 
   /**
    * Find the first block blocking the path in a given direction
+   * Uses object pooling to reduce Vector3 allocations
    * @param block - The block that wants to move
    * @param direction - Direction vector (should be -1, 0, or 1 per axis)
    * @returns The first blocking block, or undefined if path is clear
@@ -79,88 +85,89 @@ export class OccupancyGrid {
     const gridPos = block.gridPosition;
     const gridSize = block.gridSize;
 
-    // Start checking one cell beyond this block's boundary in the movement direction
-    const startPos = gridPos.clone();
+    // Acquire pooled vectors
+    const startPos = this.vectorPool.acquire();
+    const current = this.vectorPool.acquire();
+    const checkPos = this.vectorPool.acquire();
 
-    // Offset the start position by the block's size in the direction of movement
-    if (direction.x > 0) startPos.x += gridSize.x;
-    if (direction.y > 0) startPos.y += gridSize.y;
-    if (direction.z > 0) startPos.z += gridSize.z;
-    if (direction.x < 0) startPos.x -= 1;
-    if (direction.y < 0) startPos.y -= 1;
-    if (direction.z < 0) startPos.z -= 1;
+    try {
+      // Start checking one cell beyond this block's boundary in the movement direction
+      startPos.copyFrom(gridPos);
 
-    // Check cells along the movement direction
-    // We only need to check the "face" of cells adjacent to this block
-    const current = startPos.clone();
+      // Offset the start position by the block's size in the direction of movement
+      if (direction.x > 0) startPos.x += gridSize.x;
+      if (direction.y > 0) startPos.y += gridSize.y;
+      if (direction.z > 0) startPos.z += gridSize.z;
+      if (direction.x < 0) startPos.x -= 1;
+      if (direction.y < 0) startPos.y -= 1;
+      if (direction.z < 0) startPos.z -= 1;
 
-    // For each cell in the adjacent face, check if occupied
-    for (let step = 0; step < 100; step++) { // Max distance to check
-      let foundBlock: Block | undefined;
+      // Check cells along the movement direction
+      current.copyFrom(startPos);
 
-      // Check all cells in the cross-section perpendicular to movement direction
-      if (direction.x !== 0) {
-        // Moving along X, check YZ plane
-        for (let y = 0; y < gridSize.y; y++) {
-          for (let z = 0; z < gridSize.z; z++) {
-            const checkPos = new Vector3(
-              current.x,
-              gridPos.y + y,
-              gridPos.z + z
-            );
-            const blockedBy = this.getBlockAt(checkPos);
-            if (blockedBy && blockedBy !== block) {
-              foundBlock = blockedBy;
-              break;
-            }
-          }
-          if (foundBlock) break;
-        }
-      } else if (direction.y !== 0) {
-        // Moving along Y, check XZ plane
-        for (let x = 0; x < gridSize.x; x++) {
-          for (let z = 0; z < gridSize.z; z++) {
-            const checkPos = new Vector3(
-              gridPos.x + x,
-              current.y,
-              gridPos.z + z
-            );
-            const blockedBy = this.getBlockAt(checkPos);
-            if (blockedBy && blockedBy !== block) {
-              foundBlock = blockedBy;
-              break;
-            }
-          }
-          if (foundBlock) break;
-        }
-      } else if (direction.z !== 0) {
-        // Moving along Z, check XY plane
-        for (let x = 0; x < gridSize.x; x++) {
+      const maxDistance = GameConfig.PERFORMANCE.MAX_VALIDATION_DISTANCE;
+
+      // For each cell in the adjacent face, check if occupied
+      for (let step = 0; step < maxDistance; step++) {
+        let foundBlock: Block | undefined;
+
+        // Check all cells in the cross-section perpendicular to movement direction
+        if (direction.x !== 0) {
+          // Moving along X, check YZ plane
           for (let y = 0; y < gridSize.y; y++) {
-            const checkPos = new Vector3(
-              gridPos.x + x,
-              gridPos.y + y,
-              current.z
-            );
-            const blockedBy = this.getBlockAt(checkPos);
-            if (blockedBy && blockedBy !== block) {
-              foundBlock = blockedBy;
-              break;
+            for (let z = 0; z < gridSize.z; z++) {
+              checkPos.set(current.x, gridPos.y + y, gridPos.z + z);
+              const blockedBy = this.getBlockAt(checkPos);
+              if (blockedBy && blockedBy !== block) {
+                foundBlock = blockedBy;
+                break;
+              }
             }
+            if (foundBlock) break;
           }
-          if (foundBlock) break;
+        } else if (direction.y !== 0) {
+          // Moving along Y, check XZ plane
+          for (let x = 0; x < gridSize.x; x++) {
+            for (let z = 0; z < gridSize.z; z++) {
+              checkPos.set(gridPos.x + x, current.y, gridPos.z + z);
+              const blockedBy = this.getBlockAt(checkPos);
+              if (blockedBy && blockedBy !== block) {
+                foundBlock = blockedBy;
+                break;
+              }
+            }
+            if (foundBlock) break;
+          }
+        } else if (direction.z !== 0) {
+          // Moving along Z, check XY plane
+          for (let x = 0; x < gridSize.x; x++) {
+            for (let y = 0; y < gridSize.y; y++) {
+              checkPos.set(gridPos.x + x, gridPos.y + y, current.z);
+              const blockedBy = this.getBlockAt(checkPos);
+              if (blockedBy && blockedBy !== block) {
+                foundBlock = blockedBy;
+                break;
+              }
+            }
+            if (foundBlock) break;
+          }
         }
+
+        if (foundBlock) {
+          return foundBlock;
+        }
+
+        // Move to next position
+        current.addInPlace(direction);
       }
 
-      if (foundBlock) {
-        return foundBlock;
-      }
-
-      // Move to next position
-      current.addInPlace(direction);
+      return undefined;
+    } finally {
+      // Always release pooled vectors
+      this.vectorPool.release(startPos);
+      this.vectorPool.release(current);
+      this.vectorPool.release(checkPos);
     }
-
-    return undefined;
   }
 
   /**

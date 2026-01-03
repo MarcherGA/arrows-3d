@@ -9,7 +9,7 @@ import {
 } from "@babylonjs/core";
 import { GameManager } from "./game/GameManager";
 import { Level1 } from "./levels/Level1";
-import { CAMERA } from "./constants";
+import { GameConfig } from "./config/GameConfig";
 import { UIManager } from "./ui/UIManager";
 import { AutoplayManager } from "./tutorial/AutoplayManager";
 import { SoundManager, SoundType } from "./audio/SoundManager";
@@ -76,22 +76,25 @@ class Game {
     // Transparent background to show HTML background image
     scene.clearColor = new Color4(0, 0, 0, 0);
 
+    const { INITIAL_ALPHA, INITIAL_BETA, INITIAL_RADIUS, MIN_RADIUS, MAX_RADIUS, BETA_MIN, BETA_MAX } =
+      GameConfig.CAMERA;
+
     // Setup camera
     const camera = new ArcRotateCamera(
       "camera",
-      CAMERA.INITIAL_ALPHA,
-      CAMERA.INITIAL_BETA,
-      CAMERA.INITIAL_RADIUS,
+      INITIAL_ALPHA,
+      INITIAL_BETA,
+      INITIAL_RADIUS,
       Vector3.Zero(),
       scene
     );
     camera.attachControl(this.canvas, true);
 
     // Camera limits
-    camera.lowerRadiusLimit = CAMERA.MIN_RADIUS;
-    camera.upperRadiusLimit = CAMERA.MAX_RADIUS;
-    camera.lowerBetaLimit = CAMERA.BETA_MIN;
-    camera.upperBetaLimit = CAMERA.BETA_MAX;
+    camera.lowerRadiusLimit = MIN_RADIUS;
+    camera.upperRadiusLimit = MAX_RADIUS;
+    camera.lowerBetaLimit = BETA_MIN;
+    camera.upperBetaLimit = BETA_MAX;
 
     // Disable default camera rotation (we rotate the objects instead)
     camera.inputs.removeByType("ArcRotateCameraPointersInput");

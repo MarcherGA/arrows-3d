@@ -13,7 +13,8 @@ import {
   Texture,
 } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
-import { ANIMATION, BLOCK, COLORS } from "../constants";
+import { GameConfig } from "../config/GameConfig";
+import { MaterialManager } from "../systems/MaterialManager";
 import { Arrow } from "./Arrow";
 
 /**
@@ -42,8 +43,8 @@ export class Block {
   private _gridSize: Vector3;
   private _isRemovable: boolean = false;
   private _isAnimating: boolean = false;
-  private material: StandardMaterial | null = null;
   private direction: Direction;
+  private materialManager: MaterialManager;
 
   // Shared resources for all blocks
   private static sharedWoodTexture: Texture | null = null;
@@ -70,6 +71,7 @@ export class Block {
     parent?: any
   ) {
     this.scene = scene;
+    this.materialManager = MaterialManager.getInstance(scene);
     this._gridPosition = gridPosition.clone();
     this._gridSize = gridSize.clone();
     this.direction = direction;
@@ -105,10 +107,11 @@ export class Block {
   private gridSizeToVisualSize(gridSize: Vector3): Vector3 {
     // Visual size = number of cells * cell size, plus gaps between cells within the block
     // For a 3-cell block: cell + gap + cell + gap + cell = 3 cells + 2 gaps
+    const { SCALE, GAP } = GameConfig.BLOCK;
     return new Vector3(
-      gridSize.x * BLOCK.SCALE + (gridSize.x - 1) * BLOCK.GAP,
-      gridSize.y * BLOCK.SCALE + (gridSize.y - 1) * BLOCK.GAP,
-      gridSize.z * BLOCK.SCALE + (gridSize.z - 1) * BLOCK.GAP
+      gridSize.x * SCALE + (gridSize.x - 1) * GAP,
+      gridSize.y * SCALE + (gridSize.y - 1) * GAP,
+      gridSize.z * SCALE + (gridSize.z - 1) * GAP
     );
   }
 
@@ -214,10 +217,8 @@ export class Block {
 
     // Apply custom color if provided
     if (color) {
-      this.material = new StandardMaterial("blockMat_" + Math.random(), this.scene);
-      this.material.diffuseColor = color;
-      this.material.specularColor = new Color3(0.2, 0.2, 0.2);
-      this.mesh.material = this.material;
+      const material = this.materialManager.getMaterialForColor(color);
+      this.mesh.material = material;
     }
 
     // Create arrow overlay
@@ -255,15 +256,9 @@ export class Block {
     }
 
     // Create material
-    this.material = new StandardMaterial("blockMaterial", this.scene);
-    const defaultColor = color || new Color3(
-      COLORS.BLOCK_DEFAULT.r,
-      COLORS.BLOCK_DEFAULT.g,
-      COLORS.BLOCK_DEFAULT.b
-    );
-    this.material.diffuseColor = defaultColor;
-    this.material.specularColor = new Color3(0.2, 0.2, 0.2);
-    this.mesh.material = this.material;
+    const defaultColor = color || GameConfig.COLOR.BLOCK_DEFAULT;
+    const material = this.materialManager.getMaterialForColor(defaultColor);
+    this.mesh.material = material;
 
     // Create arrow overlay
     this.createAndPositionArrow();
@@ -343,21 +338,23 @@ export class Block {
     if (this._isAnimating) return;
     this._isAnimating = true;
 
+    const { FLY_AWAY_DISTANCE, FLY_AWAY_DURATION_MS, FPS } = GameConfig.ANIMATION;
+
     const startPosition = this.mesh.position.clone();
-    const endPosition = startPosition.add(this._arrowDirection.scale(ANIMATION.FLY_AWAY_DISTANCE));
+    const endPosition = startPosition.add(this._arrowDirection.scale(FLY_AWAY_DISTANCE));
 
     // Position animation
     const positionAnim = new Animation(
       "flyPosition",
       "position",
-      ANIMATION.FPS,
+      FPS,
       Animation.ANIMATIONTYPE_VECTOR3,
       Animation.ANIMATIONLOOPMODE_CONSTANT
     );
 
     const positionKeys = [
       { frame: 0, value: startPosition },
-      { frame: (ANIMATION.FLY_AWAY_DURATION_MS / 1000) * ANIMATION.FPS, value: endPosition },
+      { frame: (FLY_AWAY_DURATION_MS / 1000) * FPS, value: endPosition },
     ];
     positionAnim.setKeys(positionKeys);
 
@@ -370,14 +367,14 @@ export class Block {
     const rotationAnim = new Animation(
       "flyRotation",
       "rotation.y",
-      ANIMATION.FPS,
+      FPS,
       Animation.ANIMATIONTYPE_FLOAT,
       Animation.ANIMATIONLOOPMODE_CONSTANT
     );
 
     const rotationKeys = [
       { frame: 0, value: this.mesh.rotation.y },
-      { frame: (ANIMATION.FLY_AWAY_DURATION_MS / 1000) * ANIMATION.FPS, value: this.mesh.rotation.y + Math.PI },
+      { frame: (FLY_AWAY_DURATION_MS / 1000) * FPS, value: this.mesh.rotation.y + Math.PI },
     ];
     rotationAnim.setKeys(rotationKeys);
 
@@ -386,7 +383,7 @@ export class Block {
       this.mesh,
       [positionAnim, rotationAnim],
       0,
-      (ANIMATION.FLY_AWAY_DURATION_MS / 1000) * ANIMATION.FPS,
+      (FLY_AWAY_DURATION_MS / 1000) * FPS,
       false,
       1,
       () => {
@@ -403,24 +400,26 @@ export class Block {
     if (this._isAnimating) return;
     this._isAnimating = true;
 
+    const { SHAKE_DISTANCE, FPS } = GameConfig.ANIMATION;
+
     const originalPosition = this.mesh.position.clone();
-    const shakeOffset = this._arrowDirection.scale(ANIMATION.SHAKE_DISTANCE);
+    const shakeOffset = this._arrowDirection.scale(SHAKE_DISTANCE);
     const shakePosition = originalPosition.add(shakeOffset);
 
     const shakeAnim = new Animation(
       "shake",
       "position",
-      ANIMATION.FPS,
+      FPS,
       Animation.ANIMATIONTYPE_VECTOR3,
       Animation.ANIMATIONLOOPMODE_CYCLE
     );
 
     const shakeKeys = [
       { frame: 0, value: originalPosition },
-      { frame: ANIMATION.FPS * 0.05, value: shakePosition },
-      { frame: ANIMATION.FPS * 0.1, value: originalPosition },
-      { frame: ANIMATION.FPS * 0.15, value: shakePosition },
-      { frame: ANIMATION.FPS * 0.2, value: originalPosition },
+      { frame: FPS * 0.05, value: shakePosition },
+      { frame: FPS * 0.1, value: originalPosition },
+      { frame: FPS * 0.15, value: shakePosition },
+      { frame: FPS * 0.2, value: originalPosition },
     ];
     shakeAnim.setKeys(shakeKeys);
 
@@ -428,7 +427,7 @@ export class Block {
       this.mesh,
       [shakeAnim],
       0,
-      ANIMATION.FPS * 0.2,
+      FPS * 0.2,
       false,
       1,
       () => {
@@ -439,6 +438,7 @@ export class Block {
 
   /**
    * Clean up resources
+   * Note: Materials are managed by MaterialManager and not disposed here
    */
   public dispose(): void {
     this.mesh.dispose();
@@ -446,9 +446,6 @@ export class Block {
       arrow.dispose();
     }
     this.arrows = [];
-    if (this.material) {
-      this.material.dispose();
-    }
   }
 
   // Getters
