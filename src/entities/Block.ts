@@ -238,12 +238,13 @@ export class Block {
       const material = this.materialManager.getMaterialForColor(color);
       this.mesh.material = material;
     } else if (this._blockType === BlockType.KEY) {
-      // Gold color for key blocks
-      const goldMaterial = this.materialManager.getMaterialForColor(new Color3(1, 0.84, 0));
+      // Bright gold color for key blocks (highly visible)
+      const goldMaterial = this.materialManager.getMaterialForColor(new Color3(1, 0.843, 0));
+      goldMaterial.emissiveColor = new Color3(0.3, 0.25, 0); // Add glow
       this.mesh.material = goldMaterial;
     } else if (this._blockType === BlockType.LOCKED) {
-      // Dark grey for locked blocks
-      const lockedMaterial = this.materialManager.getMaterialForColor(new Color3(0.3, 0.3, 0.3));
+      // Medium grey for locked blocks (visible against any background)
+      const lockedMaterial = this.materialManager.getMaterialForColor(new Color3(0.5, 0.5, 0.5));
       this.mesh.material = lockedMaterial;
     }
 
@@ -283,12 +284,19 @@ export class Block {
 
     // Create material based on block type
     let blockColor = color || GameConfig.COLOR.BLOCK_DEFAULT;
+    let material: StandardMaterial;
+
     if (!color && this._blockType === BlockType.KEY) {
-      blockColor = new Color3(1, 0.84, 0); // Gold
+      blockColor = new Color3(1, 0.843, 0); // Bright gold
+      material = this.materialManager.getMaterialForColor(blockColor);
+      material.emissiveColor = new Color3(0.3, 0.25, 0); // Add glow
     } else if (!color && this._blockType === BlockType.LOCKED) {
-      blockColor = new Color3(0.3, 0.3, 0.3); // Dark grey
+      blockColor = new Color3(0.5, 0.5, 0.5); // Medium grey
+      material = this.materialManager.getMaterialForColor(blockColor);
+    } else {
+      material = this.materialManager.getMaterialForColor(blockColor);
     }
-    const material = this.materialManager.getMaterialForColor(blockColor);
+
     this.mesh.material = material;
 
     // Create arrow overlay
@@ -303,9 +311,14 @@ export class Block {
     const facesToDraw = this.getFacesForDirection(this.direction);
 
     // Determine arrow color based on block type
-    const arrowColor = this._blockType === BlockType.LOCKED
-      ? new Color3(0.7, 0.7, 0.7) // Light grey for locked blocks
-      : GameConfig.COLOR.ARROW_COLOR;
+    let arrowColor: Color3;
+    if (this._blockType === BlockType.LOCKED) {
+      arrowColor = new Color3(0.9, 0.9, 0.9); // Very light grey for locked blocks (visible on medium grey)
+    } else if (this._blockType === BlockType.KEY) {
+      arrowColor = new Color3(1, 1, 0.8); // Light yellow for key block arrows
+    } else {
+      arrowColor = GameConfig.COLOR.ARROW_COLOR;
+    }
 
     // Create arrows for each face using Arrow class
     for (const face of facesToDraw) {
