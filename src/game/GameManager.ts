@@ -229,15 +229,12 @@ export class GameManager {
     if (levelData.cameraDistance) {
       const camera = this.scene.activeCamera as ArcRotateCamera;
       if (camera) {
-        // Temporarily adjust limits to allow the level's camera distance
-        const { ENABLE_ZOOM, MIN_RADIUS, MAX_RADIUS } = GameConfig.CAMERA;
+        const { ENABLE_ZOOM } = GameConfig.CAMERA;
 
         if (!ENABLE_ZOOM) {
-          // When zoom is disabled, adjust limits to accommodate level's camera distance
-          const minAllowed = Math.min(MIN_RADIUS, levelData.cameraDistance);
-          const maxAllowed = Math.max(MAX_RADIUS, levelData.cameraDistance);
-          camera.lowerRadiusLimit = minAllowed;
-          camera.upperRadiusLimit = maxAllowed;
+          // When zoom is disabled, lock the camera at the level's specified distance
+          camera.lowerRadiusLimit = levelData.cameraDistance;
+          camera.upperRadiusLimit = levelData.cameraDistance;
         }
 
         // Set the camera distance
