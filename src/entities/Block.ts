@@ -16,6 +16,7 @@ import "@babylonjs/loaders/glTF";
 import { GameConfig } from "../config/GameConfig";
 import { MaterialManager } from "../systems/MaterialManager";
 import { Arrow } from "./Arrow";
+import { BlockType } from "../levels/types";
 
 /**
  * Direction enum for block arrow indicators
@@ -45,6 +46,8 @@ export class Block {
   private _isAnimating: boolean = false;
   private direction: Direction;
   private materialManager: MaterialManager;
+  private _blockType: BlockType;
+  private _isLocked: boolean = false;
 
   // Shared resources for all blocks
   private static sharedWoodTexture: Texture | null = null;
@@ -60,6 +63,7 @@ export class Block {
    * @param direction - Arrow direction enum
    * @param color - Optional custom color
    * @param parent - Optional parent node for rotation
+   * @param blockType - Optional block type (KEY, LOCKED, or STANDARD)
    */
   constructor(
     scene: Scene,
@@ -68,7 +72,8 @@ export class Block {
     gridSize: Vector3,
     direction: Direction,
     color?: Color3,
-    parent?: any
+    parent?: any,
+    blockType?: BlockType
   ) {
     this.scene = scene;
     this.materialManager = MaterialManager.getInstance(scene);
@@ -76,6 +81,8 @@ export class Block {
     this._gridSize = gridSize.clone();
     this.direction = direction;
     this._arrowDirection = this.getDirectionVector(direction);
+    this._blockType = blockType || BlockType.STANDARD;
+    this._isLocked = this._blockType === BlockType.LOCKED;
 
     // Calculate visual size from grid size
     const visualSize = this.gridSizeToVisualSize(gridSize);
@@ -215,10 +222,14 @@ export class Block {
       this.mesh.parent = parent || oldParent;
     }
 
-    // Apply custom color if provided
+    // Apply custom color if provided, or gold for KEY blocks
     if (color) {
       const material = this.materialManager.getMaterialForColor(color);
       this.mesh.material = material;
+    } else if (this._blockType === BlockType.KEY) {
+      // Gold color for key blocks
+      const goldMaterial = this.materialManager.getMaterialForColor(new Color3(1, 0.84, 0));
+      this.mesh.material = goldMaterial;
     }
 
     // Create arrow overlay
@@ -255,9 +266,12 @@ export class Block {
       this.mesh.parent = parent || oldParent;
     }
 
-    // Create material
-    const defaultColor = color || GameConfig.COLOR.BLOCK_DEFAULT;
-    const material = this.materialManager.getMaterialForColor(defaultColor);
+    // Create material - use gold for KEY blocks
+    let blockColor = color || GameConfig.COLOR.BLOCK_DEFAULT;
+    if (!color && this._blockType === BlockType.KEY) {
+      blockColor = new Color3(1, 0.84, 0); // Gold
+    }
+    const material = this.materialManager.getMaterialForColor(blockColor);
     this.mesh.material = material;
 
     // Create arrow overlay
@@ -329,6 +343,67 @@ export class Block {
    */
   public updateRemovableState(isRemovable: boolean): void {
     this._isRemovable = isRemovable;
+  }
+
+  /**
+   * Unlock this block (used when key is cleared)
+   */
+  public unlock(): void {
+    if (this._blockType === BlockType.LOCKED) {
+      this._isLocked = false;
+    }
+  }
+
+  /**
+   * Denial animation for locked blocks (shake + red tint)
+   */
+  public showDenial(): void {
+    if (this._isAnimating) return;
+    this._isAnimating = true;
+
+    const { FPS } = GameConfig.ANIMATION;
+    const originalPosition = this.mesh.position.clone();
+    const shakeDistance = 0.1;
+
+    // Create shake animation
+    const shakeAnim = new Animation(
+      "denialShake",
+      "position",
+      FPS,
+      Animation.ANIMATIONTYPE_VECTOR3,
+      Animation.ANIMATIONLOOPMODE_CYCLE
+    );
+
+    const shakeKeys = [
+      { frame: 0, value: originalPosition },
+      { frame: FPS * 0.05, value: originalPosition.add(this._arrowDirection.scale(shakeDistance)) },
+      { frame: FPS * 0.1, value: originalPosition.add(this._arrowDirection.scale(-shakeDistance)) },
+      { frame: FPS * 0.15, value: originalPosition.add(this._arrowDirection.scale(shakeDistance)) },
+      { frame: FPS * 0.2, value: originalPosition },
+    ];
+    shakeAnim.setKeys(shakeKeys);
+
+    // Apply temporary red tint
+    const originalMaterial = this.mesh.material;
+    const denialMaterial = new StandardMaterial("denialMat", this.scene);
+    denialMaterial.diffuseColor = new Color3(1, 0.2, 0.2);
+    denialMaterial.emissiveColor = new Color3(0.3, 0, 0);
+    this.mesh.material = denialMaterial;
+
+    this.scene.beginDirectAnimation(
+      this.mesh,
+      [shakeAnim],
+      0,
+      FPS * 0.2,
+      false,
+      1,
+      () => {
+        // Restore original material
+        this.mesh.material = originalMaterial;
+        denialMaterial.dispose();
+        this._isAnimating = false;
+      }
+    );
   }
 
   /**
@@ -475,5 +550,13 @@ export class Block {
 
   public isAnimating(): boolean {
     return this._isAnimating;
+  }
+
+  public get blockType(): BlockType {
+    return this._blockType;
+  }
+
+  public get isLocked(): boolean {
+    return this._isLocked;
   }
 }

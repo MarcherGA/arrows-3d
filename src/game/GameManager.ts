@@ -5,6 +5,7 @@ import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
 import { OccupancyGrid } from "../systems/OccupancyGrid";
 import type { LevelData } from "../levels/types";
+import { BlockType } from "../levels/types";
 import { LevelParser } from "../levels/LevelParser";
 import { LevelRegistry } from "../levels/LevelRegistry";
 import { GameConfig, GAME_STATE } from "../config/GameConfig";
@@ -41,6 +42,7 @@ export class GameManager {
   private inputFailsafeTimer?: number;
   private idleCueTimer?: number;
   private idleCueEnabled: boolean = false; // Track if idle cue has been enabled
+  private keyCleared: boolean = false; // Track if the KEY block has been cleared
 
   constructor(scene: Scene, uiManager: UIManager, soundManager: SoundManager) {
     this.scene = scene;
@@ -218,6 +220,9 @@ export class GameManager {
     // Update current level number
     this.currentLevelNumber = levelData.levelNumber;
 
+    // Reset key-lock state for new level
+    this.keyCleared = false;
+
     // Update UI with level number
     this.uiManager.setLevel(levelData.levelNumber);
 
@@ -259,7 +264,8 @@ export class GameManager {
         blockData.gridSize,
         blockData.direction,
         blockData.color,
-        this.blockContainer
+        this.blockContainer,
+        blockData.blockType
       );
 
       // Register in occupancy grid
@@ -330,6 +336,14 @@ export class GameManager {
       return;
     }
 
+    // Check if this is a LOCKED block that hasn't been unlocked yet
+    if (block.blockType === BlockType.LOCKED && block.isLocked) {
+      // Show denial animation
+      this.soundManager.play(SoundType.BLOCK_BLOCKED);
+      block.showDenial();
+      return;
+    }
+
     // Check in real-time if the block can be removed
     const result = this.validationSystem.checkBlockRemoval(block);
 
@@ -355,6 +369,9 @@ export class GameManager {
    * Remove a block and update game state
    */
   private removeBlock(block: Block): void {
+    // Check if this is a KEY block
+    const isKeyBlock = block.blockType === BlockType.KEY;
+
     // Unregister from grid immediately
     this.occupancyGrid.unregister(block);
 
@@ -367,6 +384,11 @@ export class GameManager {
       const index = this.blocks.indexOf(block);
       if (index > -1) {
         this.blocks.splice(index, 1);
+      }
+
+      // If this was a KEY block, trigger OnKeyCleared event
+      if (isKeyBlock && !this.keyCleared) {
+        this.handleKeyCleared();
       }
 
       // Update input manager
@@ -385,6 +407,21 @@ export class GameManager {
         this.handleWin();
       }
     });
+  }
+
+  /**
+   * Handle OnKeyCleared event - unlock all LOCKED blocks
+   */
+  private handleKeyCleared(): void {
+    this.keyCleared = true;
+    console.log("🔑 Key cleared! Unlocking locked blocks...");
+
+    // Find and unlock all LOCKED blocks
+    for (const block of this.blocks) {
+      if (block.blockType === BlockType.LOCKED && block.isLocked) {
+        block.unlock();
+      }
+    }
   }
 
   /**

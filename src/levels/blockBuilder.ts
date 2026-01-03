@@ -1,6 +1,6 @@
 import { Vector3, Color3 } from "@babylonjs/core";
 import { Direction } from "../entities/Block";
-import type { BlockData } from "./types";
+import type { BlockData, BlockType } from "./types";
 
 /**
  * Builder utility for creating block data
@@ -16,6 +16,7 @@ import type { BlockData } from "./types";
  * @param gy - Grid size Y (default: 1)
  * @param gz - Grid size Z (default: 1)
  * @param color - Optional custom color
+ * @param blockType - Optional block type (KEY, LOCKED, or STANDARD)
  * @returns Block data object
  */
 export function block(
@@ -26,13 +27,15 @@ export function block(
   gx: number = 1,
   gy: number = 1,
   gz: number = 1,
-  color?: Color3
+  color?: Color3,
+  blockType?: BlockType
 ): BlockData {
   return {
     position: new Vector3(x, y, z),
     gridSize: new Vector3(gx, gy, gz),
     direction,
     ...(color && { color }),
+    ...(blockType && { blockType }),
   };
 }
 
@@ -49,6 +52,7 @@ export function createBlock(params: {
   height?: number;
   depth?: number;
   color?: Color3;
+  blockType?: BlockType;
 }): BlockData {
   return block(
     params.x,
@@ -58,6 +62,7 @@ export function createBlock(params: {
     params.width,
     params.height,
     params.depth,
-    params.color
+    params.color,
+    params.blockType
   );
 }

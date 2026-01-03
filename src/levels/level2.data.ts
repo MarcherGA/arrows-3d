@@ -1,30 +1,50 @@
-import { Color3 } from "@babylonjs/core";
 import { Direction } from "../entities/Block";
 import type { LevelData } from "./types";
+import { BlockType } from "./types";
 import { LevelRegistry } from "./LevelRegistry";
 import { block } from "./blockBuilder";
 
 /**
- * Level 2: Stretched Blocks
+ * Level 2: The Key & Lock Sequence
  *
- * Demonstrates blocks with different grid sizes
- * gridSize defines how many grid cells the block occupies
+ * Introduces logic-based gameplay:
+ * - Golden KEY block is buried in the center
+ * - LOCKED blocks (outer edges) can only be cleared after the KEY is removed
+ * - Player must identify the path to the KEY first
+ *
+ * Win time: 15-30 seconds
  */
 export const level2: LevelData = {
-  name: "Stretched Blocks",
+  name: "The Key & Lock",
   levelNumber: 2,
   blocks: [
-    // Normal 1x1x1 block at grid (0,0,0)
-    block(0, 0, 0, Direction.RIGHT, 1, 1, 1, new Color3(0.4, 0.8, 0.4)),
+    // LOCKED BLOCKS - Outer layer (bait blocks that tempt the player)
+    // These appear clickable but show denial animation until key is cleared
+    block(0, 0, 0, Direction.LEFT, 1, 1, 1, undefined, BlockType.LOCKED),
+    block(2, 0, 0, Direction.RIGHT, 1, 1, 1, undefined, BlockType.LOCKED),
+    block(0, 0, 2, Direction.FORWARD, 1, 1, 1, undefined, BlockType.LOCKED),
+    block(2, 0, 2, Direction.BACK, 1, 1, 1, undefined, BlockType.LOCKED),
 
-    // Tall 1x3x1 block at grid (1,0,0) - occupies cells (1,0,0), (1,1,0), (1,2,0)
-    block(1, 0, 0, Direction.UP, 1, 3, 1, new Color3(0.6, 0.4, 0.3)),
+    // STANDARD BLOCKS - Protective layer around the key
+    // These must be cleared to access the key
+    block(1, 0, 0, Direction.UP),
+    block(0, 0, 1, Direction.DOWN),
+    block(2, 0, 1, Direction.DOWN),
+    block(1, 0, 2, Direction.UP),
 
-    // Wide 3x1x1 block at grid (0,0,2) - occupies cells (0,0,2), (1,0,2), (2,0,2)
-    block(0, 0, 2, Direction.RIGHT, 3, 1, 1, new Color3(0.4, 0.6, 0.8)),
+    // KEY BLOCK - Center of the structure (golden, must be cleared first)
+    // Only accessible from one side initially
+    block(1, 0, 1, Direction.RIGHT, 1, 1, 1, undefined, BlockType.KEY),
 
-    // Deep 1x1x2 block at grid (2,0,0) - occupies cells (2,0,0), (2,0,1)
-    block(2, 0, 0, Direction.FORWARD, 1, 1, 2, new Color3(0.8, 0.6, 0.4)),
+    // STANDARD BLOCKS - Top layer (additional challenge)
+    block(0, 1, 0, Direction.LEFT),
+    block(1, 1, 0, Direction.BACK),
+    block(2, 1, 0, Direction.RIGHT),
+    block(0, 1, 1, Direction.FORWARD),
+    block(2, 1, 1, Direction.BACK),
+    block(0, 1, 2, Direction.LEFT),
+    block(1, 1, 2, Direction.FORWARD),
+    block(2, 1, 2, Direction.RIGHT),
   ],
   cameraDistance: 15,
 };
