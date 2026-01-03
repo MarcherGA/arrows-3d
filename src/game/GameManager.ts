@@ -34,6 +34,8 @@ export class GameManager {
   private onWinCallback?: () => void;
   private onBlockRemovedCallback?: (remainingBlocks: number) => void;
   private uiManager: UIManager;
+  private restrictedBlock: Block | null = null; // For tutorial mode
+  private inputBlocked: boolean = true; // Block input during initialization
 
   constructor(scene: Scene, uiManager: UIManager) {
     this.scene = scene;
@@ -121,6 +123,15 @@ export class GameManager {
     if (this.gameState !== GameState.PLAYING) return;
     if (block.isAnimating()) return;
 
+    // Block all input during initialization
+    if (this.inputBlocked) return;
+
+    // If in tutorial mode with restricted block, only allow clicking that block
+    if (this.restrictedBlock && block !== this.restrictedBlock) {
+      // Block rotation during tutorial as well
+      return;
+    }
+
     // Check in real-time if the block can be removed
     const result = this.validationSystem.checkBlockRemoval(block);
 
@@ -179,6 +190,12 @@ export class GameManager {
    */
   private handleRotation(deltaX: number, deltaY: number): void {
     if (this.gameState !== GameState.PLAYING) return;
+
+    // Block all input during initialization
+    if (this.inputBlocked) return;
+
+    // Block rotation during tutorial restricted mode
+    if (this.restrictedBlock) return;
 
     const camera = this.scene.activeCamera;
     if (!camera) return;
@@ -283,6 +300,27 @@ export class GameManager {
    */
   public clickBlock(block: Block): void {
     this.handleBlockClick(block);
+  }
+
+  /**
+   * Set restricted block for tutorial mode (only allow clicking this block)
+   */
+  public setRestrictedBlock(block: Block | null): void {
+    this.restrictedBlock = block;
+  }
+
+  /**
+   * Enable input (called when tutorial starts)
+   */
+  public enableInput(): void {
+    this.inputBlocked = false;
+  }
+
+  /**
+   * Disable input (for initialization)
+   */
+  public disableInput(): void {
+    this.inputBlocked = true;
   }
 
   /**

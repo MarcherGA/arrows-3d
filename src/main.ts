@@ -8,9 +8,10 @@ import {
   Color4,
 } from "@babylonjs/core";
 import { GameManager } from "./game/GameManager";
-import { Level1, Level2 } from "./levels/Level1";
+import { Level1 } from "./levels/Level1";
 import { CAMERA } from "./constants";
 import { UIManager } from "./ui/UIManager";
+import { AutoplayManager } from "./tutorial/AutoplayManager";
 
 /**
  * Initialize and run the game
@@ -21,6 +22,7 @@ class Game {
   private scene: Scene;
   private gameManager: GameManager;
   private uiManager: UIManager;
+  private autoplayManager: AutoplayManager;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -40,11 +42,17 @@ class Game {
     // Initialize game manager
     this.gameManager = new GameManager(this.scene, this.uiManager);
 
+    // Initialize autoplay manager for tutorial
+    this.autoplayManager = new AutoplayManager(this.scene, this.gameManager);
+
     // Setup game callbacks
     this.setupGameCallbacks();
 
     // Load first level
     this.gameManager.loadLevel(Level1);
+
+    // Start autoplay tutorial after level loads
+    this.startAutoplayTutorial();
 
     // Start render loop
     this.engine.runRenderLoop(() => {
@@ -148,6 +156,17 @@ class Game {
    */
   public getEngine(): Engine {
     return this.engine;
+  }
+
+  /**
+   * Start the autoplay tutorial sequence
+   */
+  private async startAutoplayTutorial(): Promise<void> {
+    // Wait for everything to be fully loaded and rendered
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Start the autoplay sequence
+    this.autoplayManager.start();
   }
 }
 
