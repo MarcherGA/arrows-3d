@@ -92,7 +92,7 @@ export class UIManager {
     const iconDiv = document.createElement('div');
     iconDiv.className = 'currency-gain-icon';
     const img = document.createElement('img');
-    img.src = '/dollars.png';
+    img.src = '/icons/dollars.png';
     img.alt = 'Currency';
     iconDiv.appendChild(img);
 

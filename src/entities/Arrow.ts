@@ -74,7 +74,7 @@ export class Arrow {
    * Create arrow texture (shared across all arrows)
    */
   private createArrowTexture(): Texture {
-    const texture = new Texture("/brown-arrow.png", this.scene);
+    const texture = new Texture("/icons/brown-arrow.png", this.scene);
     return texture;
   }
 

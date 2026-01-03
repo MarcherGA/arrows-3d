@@ -92,7 +92,7 @@ export class Block {
 
     // Create shared wood texture if not exists
     if (!Block.sharedWoodTexture) {
-      Block.sharedWoodTexture = new Texture("/wood-texture.jpg", scene);
+      Block.sharedWoodTexture = new Texture("/textures/wood-texture.jpg", scene);
     }
 
     // Load GLB model asynchronously
@@ -134,7 +134,7 @@ export class Block {
       try {
         const result = await SceneLoader.ImportMeshAsync(
           "",
-          "/",
+          "/models/",
           "beveled-cube.glb",
           this.scene
         );
