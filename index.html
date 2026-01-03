@@ -210,6 +210,22 @@
         --text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
       }
 
+      /* Semi-transparent background overlay */
+      .overlay-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 50;
+      }
+
+      .overlay-background.show {
+        display: block;
+      }
+
       /* Main Container */
       .overlay-container {
         position: fixed;
@@ -219,7 +235,7 @@
         display: none;
         flex-direction: column;
         gap: 15px;
-        z-index: 100;
+        z-index: 1000;
         align-items: center;
       }
 
@@ -378,6 +394,31 @@
         width: 35px;
         height: 35px;
       }
+
+      /* Confetti Animation */
+      @keyframes confettiFall {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg);
+          opacity: 1;
+        }
+        25% {
+          transform: translateY(25vh) translateX(var(--sway)) rotate(90deg);
+        }
+        50% {
+          transform: translateY(50vh) translateX(0) rotate(180deg);
+        }
+        75% {
+          transform: translateY(75vh) translateX(calc(var(--sway) * -1)) rotate(270deg);
+        }
+        100% {
+          transform: translateY(100vh) translateX(0) rotate(360deg);
+          opacity: 0.5;
+        }
+      }
+
+      .confetti-piece {
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -404,6 +445,9 @@
     <div class="lock-button">
       <i class="fa-solid fa-lock"></i>
     </div>
+
+    <!-- Semi-transparent background -->
+    <div class="overlay-background" id="overlayBackground"></div>
 
     <!-- Win Overlay -->
     <div class="overlay-container" id="winOverlay">

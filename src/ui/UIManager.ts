@@ -1,3 +1,5 @@
+import { ConfettiManager } from './ConfettiManager';
+
 /**
  * Manages UI elements like level number and currency display
  */
@@ -9,11 +11,15 @@ export class UIManager {
 
   // Win overlay elements
   private winOverlay: HTMLElement | null;
+  private overlayBackground: HTMLElement | null;
   private overlayLevelElement: HTMLElement | null;
   private totalCurrencyElement: HTMLElement | null;
   private levelCurrencyElement: HTMLElement | null;
   private homeButton: HTMLElement | null;
   private playButton: HTMLElement | null;
+
+  // Confetti manager
+  private confettiManager: ConfettiManager;
 
   constructor() {
     this.levelElement = document.querySelector('.level-num');
@@ -21,11 +27,15 @@ export class UIManager {
 
     // Win overlay elements
     this.winOverlay = document.querySelector('#winOverlay');
+    this.overlayBackground = document.querySelector('#overlayBackground');
     this.overlayLevelElement = document.querySelector('#overlayLevel');
     this.totalCurrencyElement = document.querySelector('#totalCurrency');
     this.levelCurrencyElement = document.querySelector('#levelCurrency');
     this.homeButton = document.querySelector('#homeButton');
     this.playButton = document.querySelector('#playButton');
+
+    // Initialize confetti manager
+    this.confettiManager = new ConfettiManager();
   }
 
   /**
@@ -128,8 +138,16 @@ export class UIManager {
         this.overlayLevelElement.textContent = this.currentLevel.toString();
       }
 
+      // Show the background overlay
+      if (this.overlayBackground) {
+        this.overlayBackground.classList.add('show');
+      }
+
       // Show the overlay
       this.winOverlay.classList.add('show');
+
+      // Start confetti animation
+      this.confettiManager.start();
     }
   }
 
@@ -139,6 +157,14 @@ export class UIManager {
   public hideWinOverlay(): void {
     if (this.winOverlay) {
       this.winOverlay.classList.remove('show');
+
+      // Hide the background overlay
+      if (this.overlayBackground) {
+        this.overlayBackground.classList.remove('show');
+      }
+
+      // Stop confetti animation
+      this.confettiManager.stop();
     }
   }
 
