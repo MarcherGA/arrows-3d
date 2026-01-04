@@ -62,7 +62,7 @@ export class LockedBlock extends BaseBlock {
     const lockedMaterial = new StandardMaterial(`lockedBlock_${this.mesh.uniqueId}`, this.scene);
     lockedMaterial.diffuseColor = lockedColor;
     lockedMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
-    lockedMaterial.alpha = 0.3; // 30% transparency for initial locked state
+    lockedMaterial.alpha = 1.0; // Start opaque, will animate to 0.3 in fadeInOnStart
     // Don't freeze this material - we need to animate alpha when unlocking
     this.mesh.material = lockedMaterial;
   }
@@ -75,6 +75,8 @@ export class LockedBlock extends BaseBlock {
   protected onSetupComplete(): void {
     // Add lock chain overlays for locked blocks
     this.createLockOverlays();
+    // Trigger fade-in animation when level starts
+    setTimeout(() => this.fadeInOnStart(),500);
   }
 
   protected onFlyAwayStart(): void {
@@ -133,6 +135,7 @@ export class LockedBlock extends BaseBlock {
       lockMaterial.backFaceCulling = false;
       lockMaterial.disableLighting = true;
       lockMaterial.emissiveColor = new Color3(0.8, 0.8, 0.8);
+      lockMaterial.alpha = 0.0; // Start invisible, will fade in during fadeInOnStart
       plane.material = lockMaterial;
 
       // Position on face
@@ -286,6 +289,84 @@ export class LockedBlock extends BaseBlock {
       false,
       1
     );
+  }
+
+  /**
+   * Fade in from opaque unlocked state to transparent locked state when level starts
+   * Block: opaque (1.0) → transparent (0.3)
+   * Overlays: invisible (0.0) → visible (1.0)
+   */
+  private fadeInOnStart(): void {
+    if (!this.mesh.material) return;
+
+    const { FPS } = GameConfig.ANIMATION;
+    const fadeDuration = 0.5; // Duration in seconds
+    const currentMaterial = this.mesh.material as StandardMaterial;
+
+    // Animate block from opaque to transparent
+    const blockFadeAnim = new Animation(
+      "lockBlockFadeIn",
+      "alpha",
+      FPS,
+      Animation.ANIMATIONTYPE_FLOAT,
+      Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+
+    const blockFadeKeys = [
+      { frame: 0, value: 1.0 }, // Start fully opaque (unlocked appearance)
+      { frame: FPS * fadeDuration, value: 0.3 } // End at locked transparency
+    ];
+    blockFadeAnim.setKeys(blockFadeKeys);
+
+    // Add easing
+    const easing = new CubicEase();
+    easing.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
+    blockFadeAnim.setEasingFunction(easing);
+
+    // Animate block to transparent locked state
+    this.scene.beginDirectAnimation(
+      currentMaterial,
+      [blockFadeAnim],
+      0,
+      FPS * fadeDuration,
+      false,
+      1
+    );
+
+    // Animate lock overlays from invisible to visible
+    if (this.lockOverlays && this.lockOverlays.length > 0) {
+      for (const overlay of this.lockOverlays) {
+        if (!overlay.material) continue;
+
+        const overlayMaterial = overlay.material as StandardMaterial;
+
+        // Create fade-in animation for overlay
+        const overlayFadeAnim = new Animation(
+          "lockOverlayFadeIn",
+          "alpha",
+          FPS,
+          Animation.ANIMATIONTYPE_FLOAT,
+          Animation.ANIMATIONLOOPMODE_CONSTANT
+        );
+
+        const overlayFadeKeys = [
+          { frame: 0, value: 0.0 }, // Start invisible
+          { frame: FPS * fadeDuration, value: 1.0 } // End fully visible
+        ];
+        overlayFadeAnim.setKeys(overlayFadeKeys);
+        overlayFadeAnim.setEasingFunction(easing);
+
+        // Animate overlay to visible
+        this.scene.beginDirectAnimation(
+          overlayMaterial,
+          [overlayFadeAnim],
+          0,
+          FPS * fadeDuration,
+          false,
+          1
+        );
+      }
+    }
   }
 
   /**
