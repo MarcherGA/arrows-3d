@@ -13,6 +13,7 @@ import { AutoplayManager } from "./tutorial/AutoplayManager";
 import { SoundManager, SoundType } from "./audio/SoundManager";
 
 // Side-effects imports to prevent tree-shaking
+import "@babylonjs/core/Shaders/rgbdDecode.fragment"; // Import shader to prevent HTTP loading
 import "@babylonjs/core/PostProcesses/postProcess";
 import "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipeline";
 import "@babylonjs/core/Materials/Textures/Loaders/";
@@ -21,6 +22,11 @@ import "@babylonjs/core/Culling/ray";
 import '@babylonjs/core/Engines/Extensions/'; // Ensure audio engine is included
 import "@babylonjs/core/Materials/standardMaterial";
 import "@babylonjs/loaders/glTF";
+import "@babylonjs/core/Engines/Extensions/engine.query";
+import "@babylonjs/core/Materials/Textures/Loaders/envTextureLoader"; // If using .env or .dds
+import "@babylonjs/core/Materials/"; // If using Node Material
+// This is likely the one you are missing:
+import "@babylonjs/core/Misc/";
 
 
 
