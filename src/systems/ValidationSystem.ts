@@ -35,7 +35,7 @@ export class ValidationSystem {
       const blockingBlock = this.occupancyGrid.getBlockingBlock(block, gridDir);
 
       return {
-        isRemovable: !blockingBlock,
+        isRemovable: !block.isLocked && !blockingBlock,
         blockingBlock: blockingBlock,
       };
     } finally {
@@ -74,6 +74,12 @@ export class ValidationSystem {
    */
   public updateAllBlockStates(blocks: Block[]): void {
     for (const block of blocks) {
+      // Locked blocks can never be removed until unlocked
+      if (block.isLocked) {
+        block.updateRemovableState(false);
+        continue;
+      }
+
       const isRemovable = this.isBlockRemovable(block, blocks);
       block.updateRemovableState(isRemovable);
     }
