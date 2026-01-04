@@ -2,7 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
-import { BaseBlock, Block, BlockFactory, KeyBlock, LockedBlock } from "../entities/Block";
+import { BaseBlock, Block, BlockFactory, KeyBlock} from "../entities/Block";
 import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
