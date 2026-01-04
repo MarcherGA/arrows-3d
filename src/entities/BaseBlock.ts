@@ -201,9 +201,10 @@ export abstract class BaseBlock {
     // Store parent from temp mesh
     const oldParent = this.mesh.parent;
 
-    // Dispose temp box
+    // Dispose temp box (don't trigger onDispose hooks - this is just the initial temp mesh)
     if (this.mesh) {
       this.mesh.dispose();
+      // Don't call this.onDispose() here - temp mesh never had overlays/arrows attached
     }
 
     // Check if we need custom material

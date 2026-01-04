@@ -17,7 +17,23 @@ import { GameConfig } from "../config/GameConfig";
  */
 export class LockedBlock extends BaseBlock {
   private _isLocked: boolean = true;
-  private lockOverlays: Mesh[] = []; // Lock chain texture overlays
+  // Store lock overlays as metadata on the mesh to avoid initialization timing issues
+  private get lockOverlays(): Mesh[] {
+    if (!this.mesh.metadata) {
+      this.mesh.metadata = {};
+    }
+    if (!this.mesh.metadata.lockOverlays) {
+      this.mesh.metadata.lockOverlays = [];
+    }
+    return this.mesh.metadata.lockOverlays;
+  }
+
+  private set lockOverlays(value: Mesh[]) {
+    if (!this.mesh.metadata) {
+      this.mesh.metadata = {};
+    }
+    this.mesh.metadata.lockOverlays = value;
+  }
 
   constructor(
     scene: Scene,
@@ -37,17 +53,16 @@ export class LockedBlock extends BaseBlock {
   }
 
   protected applyMaterial(color?: Color3): void {
-    // Medium grey for locked blocks (visible against any background)
-    const lockedColor = color || new Color3(0.5, 0.5, 0.5);
+    // Dark grey for locked blocks (darker and more visible)
+    const lockedColor = color || new Color3(0.2, 0.2, 0.2);
     const lockedMaterial = this.materialManager.getMaterialForColor(lockedColor);
-    lockedMaterial.alpha = 0.5; // 50% transparency for initial locked state
+    lockedMaterial.alpha = 0.3; // 30% transparency for initial locked state
     this.mesh.material = lockedMaterial;
-    console.log("🔒 Created LOCKED block with grey material (50% transparent)");
   }
 
   protected getArrowColor(): Color3 {
     // Very light grey for locked blocks (visible on medium grey)
-    return new Color3(0.9, 0.9, 0.9);
+    return new Color3(0.7, 0.7, 0.7);
   }
 
   protected onSetupComplete(): void {
@@ -61,13 +76,15 @@ export class LockedBlock extends BaseBlock {
 
   protected onDispose(): void {
     // Dispose lock overlays
-    for (const overlay of this.lockOverlays) {
-      if (overlay.material) {
-        overlay.material.dispose();
+    if (this.lockOverlays) {
+      for (const overlay of this.lockOverlays) {
+        if (overlay.material) {
+          overlay.material.dispose();
+        }
+        overlay.dispose();
       }
-      overlay.dispose();
+      this.lockOverlays = [];
     }
-    this.lockOverlays = [];
   }
 
   /**
@@ -90,7 +107,7 @@ export class LockedBlock extends BaseBlock {
     for (const face of allFaces) {
       // Create a plane for this face
       const plane = MeshBuilder.CreatePlane(
-        "lockOverlay",
+        `lockOverlay_${face}`,
         { width: 1, height: 1 },
         this.scene
       );
@@ -167,14 +184,18 @@ export class LockedBlock extends BaseBlock {
    * Fade out lock overlays with alpha animation
    */
   private fadeLockOverlays(): void {
-    if (this.lockOverlays.length === 0) return;
+    if (!this.lockOverlays || this.lockOverlays.length === 0) {
+      return;
+    }
 
     const { FPS } = GameConfig.ANIMATION;
     const fadeDuration = 0.5; // Duration in seconds
 
     // Create alpha animation for each lock overlay
     for (const overlay of this.lockOverlays) {
-      if (!overlay.material) continue;
+      if (!overlay.material) {
+        continue;
+      }
 
       const material = overlay.material as StandardMaterial;
 
@@ -215,7 +236,7 @@ export class LockedBlock extends BaseBlock {
   }
 
   /**
-   * Restore material to dark grey (0.3, 0.3, 0.3) with full opacity when unlocking
+   * Fade material from transparent (0.3) to opaque (1.0) when unlocking
    */
   private restoreMaterialAlpha(): void {
     if (!this.mesh.material) return;
@@ -224,75 +245,34 @@ export class LockedBlock extends BaseBlock {
     const fadeDuration = 0.5; // Duration in seconds
     const currentMaterial = this.mesh.material as StandardMaterial;
 
-    // Create dark grey material for unlocked state
-    const darkGreyMaterial = this.materialManager.getMaterialForColor(new Color3(0.3, 0.3, 0.3));
-    darkGreyMaterial.alpha = 0.0; // Start transparent
-
-    // Fade out current light grey material
-    const fadeOutAnim = new Animation(
-      "unlockFadeOut",
+    // Animate from transparent to opaque
+    const fadeInAnim = new Animation(
+      "unlockFadeIn",
       "alpha",
       FPS,
       Animation.ANIMATIONTYPE_FLOAT,
       Animation.ANIMATIONLOOPMODE_CONSTANT
     );
 
-    const fadeOutKeys = [
-      { frame: 0, value: 0.5 },
-      { frame: FPS * (fadeDuration / 2), value: 0.0 }
+    const fadeInKeys = [
+      { frame: 0, value: 0.3 }, // Start at current transparency
+      { frame: FPS * fadeDuration, value: 1.0 } // End fully opaque
     ];
-    fadeOutAnim.setKeys(fadeOutKeys);
+    fadeInAnim.setKeys(fadeInKeys);
 
     // Add easing
     const easing = new CubicEase();
     easing.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
-    fadeOutAnim.setEasingFunction(easing);
+    fadeInAnim.setEasingFunction(easing);
 
-    // Animate fade out, then swap to dark grey and fade in
+    // Animate to full opacity
     this.scene.beginDirectAnimation(
       currentMaterial,
-      [fadeOutAnim],
+      [fadeInAnim],
       0,
-      FPS * (fadeDuration / 2),
+      FPS * fadeDuration,
       false,
-      1,
-      () => {
-        // Swap to dark grey material
-        const oldMaterial = this.mesh.material;
-        this.mesh.material = darkGreyMaterial;
-
-        // Fade in dark grey material
-        const fadeInAnim = new Animation(
-          "unlockFadeIn",
-          "alpha",
-          FPS,
-          Animation.ANIMATIONTYPE_FLOAT,
-          Animation.ANIMATIONLOOPMODE_CONSTANT
-        );
-
-        const fadeInKeys = [
-          { frame: 0, value: 0.0 },
-          { frame: FPS * (fadeDuration / 2), value: 1.0 }
-        ];
-        fadeInAnim.setKeys(fadeInKeys);
-        fadeInAnim.setEasingFunction(easing);
-
-        this.scene.beginDirectAnimation(
-          darkGreyMaterial,
-          [fadeInAnim],
-          0,
-          FPS * (fadeDuration / 2),
-          false,
-          1,
-          () => {
-            // Cleanup old light grey material
-            if (oldMaterial) {
-              (oldMaterial as StandardMaterial).dispose();
-            }
-            console.log("🔓 Block unlocked - restored to dark grey (0.3, 0.3, 0.3)");
-          }
-        );
-      }
+      1
     );
   }
 
