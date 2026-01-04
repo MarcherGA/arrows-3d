@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arrow Block 3D</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="/icons/logo.png">
+    <!-- Font Awesome lock icon inlined as SVG to avoid external dependency -->
     <style>
       * {
         margin: 0;
@@ -15,7 +16,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background-image: url('/textures/bg-green.jpg');
+        background-image: url('./textures/bg-green.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -433,17 +434,17 @@
         </div>
       </div>
 
-      <div class="level-num">2</div>
+      <div class="level-num">1</div>
 
       <div class="currency-container">
-        <div class="cash-icon"><img src="/icons/dollars.png" alt="Currency"></div>
-        <div class="currency-val">3</div>
+        <div class="cash-icon"><img src="./icons/dollars.png" alt="Currency"></div>
+        <div class="currency-val">0</div>
       </div>
     </header>
 
     <!-- Bottom lock button -->
     <div class="lock-button">
-      <i class="fa-solid fa-lock"></i>
+      <svg viewBox="0 0 448 512" style="width: 28px; height: 28px; fill: currentColor;"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
     </div>
 
     <!-- Semi-transparent background -->
@@ -452,9 +453,9 @@
     <!-- Win Overlay -->
     <div class="overlay-container" id="winOverlay">
       <div class="top-section">
-        <div class="piggy-icon"><img src="/icons/piggy-bank.png" alt="Piggy Bank"></div>
+        <div class="piggy-icon"><img src="./icons/piggy-bank.png" alt="Piggy Bank"></div>
         <div class="cash-pill">
-          <div class="overlay-cash-icon"><img src="/icons/dollars.png" alt="Currency"></div>
+          <div class="overlay-cash-icon"><img src="./icons/dollars.png" alt="Currency"></div>
           <span id="totalCurrency">0</span>
         </div>
       </div>
@@ -465,7 +466,7 @@
         <div class="win-text">You Win!</div>
 
         <div class="cash-pill">
-          <div class="overlay-cash-icon"><img src="/icons/dollars.png" alt="Currency"></div>
+          <div class="overlay-cash-icon"><img src="./icons/dollars.png" alt="Currency"></div>
           <span id="levelCurrency">0</span>
         </div>
 

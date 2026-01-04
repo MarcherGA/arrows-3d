@@ -4,7 +4,10 @@
  * Implements the Flyweight pattern for material reuse
  */
 
-import { Scene, StandardMaterial, Color3, Texture } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 
 /**
  * Material cache key for color-based materials

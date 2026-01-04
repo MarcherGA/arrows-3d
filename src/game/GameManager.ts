@@ -1,4 +1,7 @@
-import { Scene, TransformNode, Vector3, ArcRotateCamera } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { BaseBlock, Block, BlockFactory, KeyBlock, LockedBlock } from "../entities/Block";
 import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
@@ -142,7 +145,6 @@ export class GameManager {
    * Handle idle timeout (no interaction for IDLE_TIMEOUT ms)
    */
   private handleIdleTimeout(): void {
-    console.log("⏰ Idle timeout - user inactive");
     // Trigger CTA or show hint
     if (this.onTimeoutCallback) {
       this.onTimeoutCallback();
@@ -153,7 +155,6 @@ export class GameManager {
    * Handle total engagement timeout (MAX_ENGAGEMENT_TIME reached)
    */
   private handleEngagementTimeout(): void {
-    console.log("⏰ Max engagement time reached - forcing CTA");
     this.gameState = GameState.GAME_OVER;
     if (this.onTimeoutCallback) {
       this.onTimeoutCallback();
@@ -266,13 +267,6 @@ export class GameManager {
         blockData.color,
         this.blockContainer
       );
-
-      // Debug log for special blocks
-      if (block instanceof KeyBlock) {
-        console.log(`Created KEY block at`, blockData.position);
-      } else if (block instanceof LockedBlock) {
-        console.log(`Created LOCKED block at`, blockData.position);
-      }
 
       // Register in occupancy grid
       this.occupancyGrid.register(block, blockData.position, blockData.gridSize);
@@ -420,7 +414,6 @@ export class GameManager {
    */
   private handleKeyCleared(): void {
     this.keyCleared = true;
-    console.log("🔑 Key cleared! Unlocking locked blocks...");
 
     // Find and unlock all locked blocks (polymorphic call)
     for (const block of this.blocks) {
@@ -478,7 +471,6 @@ export class GameManager {
    */
   private handleWin(): void {
     this.gameState = GameState.WON;
-    console.log("Level complete!");
 
     // Clear engagement timers on win
     this.clearEngagementTimers();

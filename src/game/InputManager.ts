@@ -1,4 +1,5 @@
-import { Scene, PointerEventTypes, PointerInfo } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { PointerInfo, PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Block } from "../entities/Block";
 import { GameConfig } from "../config/GameConfig";
 

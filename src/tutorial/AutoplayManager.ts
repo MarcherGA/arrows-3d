@@ -1,4 +1,5 @@
-import { Scene, Vector3 } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { GameManager } from "../game/GameManager";
 import { Block } from "../entities/Block";
 import { GameConfig } from "../config/GameConfig";

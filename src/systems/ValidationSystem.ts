@@ -1,4 +1,4 @@
-import { Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Block } from "../entities/Block";
 import { OccupancyGrid } from "./OccupancyGrid";
 import { Vector3Pool } from "./ObjectPool";

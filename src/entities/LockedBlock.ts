@@ -1,14 +1,11 @@
-import {
-  Scene,
-  Vector3,
-  Color3,
-  Mesh,
-  MeshBuilder,
-  StandardMaterial,
-  Animation,
-  EasingFunction,
-  CubicEase,
-} from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Animation} from "@babylonjs/core/Animations/animation";
+import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
 import { BaseBlock, Direction } from "./BaseBlock";
 import { GameConfig } from "../config/GameConfig";
 

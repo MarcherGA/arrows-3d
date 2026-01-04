@@ -4,7 +4,7 @@
  * This allows for quick iteration and balancing without touching core logic
  */
 
-import { Color3, Color4 } from "@babylonjs/core";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 
 /**
  * Animation timing and distance constants

@@ -1,17 +1,15 @@
-import {
-  Scene,
-  Mesh,
-  InstancedMesh,
-  Vector3,
-  MeshBuilder,
-  StandardMaterial,
-  Color3,
-  Animation,
-  EasingFunction,
-  CubicEase,
-  SceneLoader,
-  Texture,
-} from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { Animation } from "@babylonjs/core/Animations/animation";
+import "@babylonjs/core/Animations/";
+import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders/glTF";
 import { GameConfig } from "../config/GameConfig";
 import { MaterialManager } from "../systems/MaterialManager";

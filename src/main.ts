@@ -1,18 +1,29 @@
-import {
-  Engine,
-  Scene,
-  ArcRotateCamera,
-  Vector3,
-  HemisphericLight,
-  DirectionalLight,
-  Color4,
-} from "@babylonjs/core";
+import { Engine } from "@babylonjs/core/Engines/engine";
+import { Scene } from "@babylonjs/core/scene";
+import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { Color4 } from "@babylonjs/core/Maths/math.color";
 import { GameManager } from "./game/GameManager";
 import "./levels"; // Import levels to auto-register them
 import { GameConfig } from "./config/GameConfig";
 import { UIManager } from "./ui/UIManager";
 import { AutoplayManager } from "./tutorial/AutoplayManager";
 import { SoundManager, SoundType } from "./audio/SoundManager";
+
+// Side-effects imports to prevent tree-shaking
+import "@babylonjs/core/PostProcesses/postProcess";
+import "@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipeline";
+import "@babylonjs/core/Materials/Textures/Loaders/";
+import "@babylonjs/core/Animations/";
+import "@babylonjs/core/Culling/ray";
+import '@babylonjs/core/Engines/Extensions/'; // Ensure audio engine is included
+import "@babylonjs/core/Materials/standardMaterial";
+import "@babylonjs/loaders/glTF";
+
+
+
 
 /**
  * Initialize and run the game
@@ -134,7 +145,6 @@ class Game {
   private setupGameCallbacks(): void {
     // Handle win condition
     this.gameManager.onWin(() => {
-      console.log("🎉 You won!");
       setTimeout(() => {
         this.uiManager.showWinOverlay();
       }, GameConfig.UI.WIN_OVERLAY_DELAY);
@@ -144,7 +154,6 @@ class Game {
     this.uiManager.onHomeButton(() => {
       this.uiManager.hideWinOverlay();
       // TODO: Navigate to home screen when implemented
-      console.log("Home button clicked");
     });
 
     this.uiManager.onPlayButton(() => {
@@ -153,13 +162,12 @@ class Game {
     });
 
     // Track block removal
-    this.gameManager.onBlockRemoved((remaining) => {
-      console.log(`Blocks remaining: ${remaining}`);
+    this.gameManager.onBlockRemoved(() => {
+      // Block removal tracking (optional: could update UI here)
     });
 
     // Handle timeout (idle or max engagement time)
     this.gameManager.onTimeout(() => {
-      console.log("⏰ Timeout triggered - showing CTA");
       // Show win overlay as CTA (in real playable ad, this would trigger app store redirect)
       this.uiManager.showWinOverlay();
     });

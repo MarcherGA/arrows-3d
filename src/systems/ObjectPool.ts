@@ -4,7 +4,7 @@
  * Implements the Object Pool pattern for high-frequency allocations
  */
 
-import { Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 /**
  * Generic object pool interface

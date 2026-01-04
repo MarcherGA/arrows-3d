@@ -1,4 +1,6 @@
-import { Scene, Vector3, Color3 } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { BaseBlock, Direction } from "./BaseBlock";
 import { StandardBlock } from "./StandardBlock";
 import { KeyBlock } from "./KeyBlock";

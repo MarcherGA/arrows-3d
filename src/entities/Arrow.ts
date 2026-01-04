@@ -1,11 +1,10 @@
-import {
-  Scene,
-  Mesh,
-  Vector3,
-  MeshBuilder,
-  Matrix,
-  Quaternion,
-} from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { GameConfig } from "../config/GameConfig";
 import { positionArrowOnFace } from "../systems/ArrowSystem";
 import { Direction } from "./Block";
@@ -30,7 +29,7 @@ export class Arrow {
     face: Direction,
     pointingDirection: Direction,
     parent: Mesh | any,
-    color?: import("@babylonjs/core").Color3
+    color?: Color3
   ) {
     // Create arrow plane
     const { ARROW_SIZE } = GameConfig.BLOCK;

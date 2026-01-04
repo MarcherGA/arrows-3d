@@ -1,4 +1,5 @@
-import { Vector3, Color3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Direction } from "../entities/Block";
 import type { BlockData, BlockType } from "./types";
 

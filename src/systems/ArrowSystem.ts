@@ -1,4 +1,7 @@
-import { Mesh, Vector3, Matrix, Quaternion } from "@babylonjs/core";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
+import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { GameConfig } from "../config/GameConfig";
 
 /**

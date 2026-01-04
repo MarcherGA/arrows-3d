@@ -1,4 +1,8 @@
-import { Scene, Vector3, Color3, Animation, EasingFunction, CubicEase } from "@babylonjs/core";
+import { Scene } from "@babylonjs/core/scene";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Animation} from "@babylonjs/core/Animations/animation";
+import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
 import { BaseBlock, Direction } from "./BaseBlock";
 import { GameConfig } from "../config/GameConfig";
 
@@ -36,7 +40,6 @@ export class KeyBlock extends BaseBlock {
     goldMaterial.emissiveColor = new Color3(0.3, 0.25, 0); // Add glow
     goldMaterial.unfreeze(); // Unfreeze the cloned material so we can modify it
     this.mesh.material = goldMaterial;
-    console.log("✨ Created KEY block with gold material");
   }
 
   protected getArrowColor(): Color3 {
@@ -106,8 +109,6 @@ export class KeyBlock extends BaseBlock {
       FPS * pulseDuration,
       true // Loop indefinitely
     );
-
-    console.log("✨ Started pulse animation for KEY block");
   }
 
   /**
