@@ -34,7 +34,7 @@ export const level2: LevelData = {
 
     // KEY BLOCK - Center of the structure (golden, must be cleared first)
     // Only accessible from one side initially
-    block(1, 0, 1, Direction.RIGHT, 1, 1, 1, undefined, BlockType.KEY),
+    block(1, 1, 1, Direction.RIGHT, 1, 1, 1, undefined, BlockType.KEY),
 
     // STANDARD BLOCKS - Top layer (additional challenge)
     block(0, 1, 0, Direction.LEFT),

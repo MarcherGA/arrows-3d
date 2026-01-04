@@ -1,11 +1,10 @@
 import { Scene, TransformNode, Vector3, ArcRotateCamera } from "@babylonjs/core";
-import { Block } from "../entities/Block";
+import { BaseBlock, Block, BlockFactory, KeyBlock, LockedBlock } from "../entities/Block";
 import { InputManager } from "./InputManager";
 import type { InputEvent } from "./InputManager";
 import { ValidationSystem } from "../systems/ValidationSystem";
 import { OccupancyGrid } from "../systems/OccupancyGrid";
 import type { LevelData } from "../levels/types";
-import { BlockType } from "../levels/types";
 import { LevelParser } from "../levels/LevelParser";
 import { LevelRegistry } from "../levels/LevelRegistry";
 import { GameConfig, GAME_STATE } from "../config/GameConfig";
@@ -21,7 +20,7 @@ export type GameState = typeof GAME_STATE[keyof typeof GAME_STATE];
  */
 export class GameManager {
   private scene: Scene;
-  private blocks: Block[] = [];
+  private blocks: BaseBlock[] = [];
   private inputManager: InputManager;
   private validationSystem: ValidationSystem;
   private occupancyGrid!: OccupancyGrid;
@@ -30,7 +29,7 @@ export class GameManager {
   private onWinCallback?: () => void;
   private onBlockRemovedCallback?: (remainingBlocks: number) => void;
   private uiManager: UIManager;
-  private restrictedBlock: Block | null = null; // For tutorial mode
+  private restrictedBlock: BaseBlock | null = null; // For tutorial mode
   private inputBlocked: boolean = true; // Block input during initialization
   private soundManager: SoundManager;
   private currentLevelNumber: number = 1; // Track current level
@@ -257,20 +256,22 @@ export class GameManager {
 
     // Create blocks from level data
     for (const blockData of processedBlocks) {
-      const block = new Block(
+      const block = BlockFactory.createBlock(
+        blockData.blockType,
         this.scene,
         blockData.worldPosition,
         blockData.position,
         blockData.gridSize,
         blockData.direction,
         blockData.color,
-        this.blockContainer,
-        blockData.blockType
+        this.blockContainer
       );
 
       // Debug log for special blocks
-      if (blockData.blockType) {
-        console.log(`Created ${blockData.blockType} block at`, blockData.position);
+      if (block instanceof KeyBlock) {
+        console.log(`Created KEY block at`, blockData.position);
+      } else if (block instanceof LockedBlock) {
+        console.log(`Created LOCKED block at`, blockData.position);
       }
 
       // Register in occupancy grid
@@ -341,9 +342,9 @@ export class GameManager {
       return;
     }
 
-    // Check if this is a LOCKED block that hasn't been unlocked yet
-    if (block.blockType === BlockType.LOCKED && block.isLocked) {
-      // Show denial animation
+    // Check if this is a locked block (polymorphic call)
+    if (block.isLocked) {
+      // Show denial animation (polymorphic call)
       this.soundManager.play(SoundType.BLOCK_BLOCKED);
       block.showDenial();
       return;
@@ -373,9 +374,9 @@ export class GameManager {
   /**
    * Remove a block and update game state
    */
-  private removeBlock(block: Block): void {
+  private removeBlock(block: BaseBlock): void {
     // Check if this is a KEY block
-    const isKeyBlock = block.blockType === BlockType.KEY;
+    const isKeyBlock = block instanceof KeyBlock;
 
     // Unregister from grid immediately
     this.occupancyGrid.unregister(block);
@@ -421,9 +422,9 @@ export class GameManager {
     this.keyCleared = true;
     console.log("🔑 Key cleared! Unlocking locked blocks...");
 
-    // Find and unlock all LOCKED blocks
+    // Find and unlock all locked blocks (polymorphic call)
     for (const block of this.blocks) {
-      if (block.blockType === BlockType.LOCKED && block.isLocked) {
+      if (block.isLocked) {
         block.unlock();
       }
     }

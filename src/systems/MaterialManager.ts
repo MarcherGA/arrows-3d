@@ -109,6 +109,7 @@ export class MaterialManager {
     material.useAlphaFromDiffuseTexture = true;
     material.backFaceCulling = true;
     material.disableDepthWrite = false;
+    material.disableLighting = true;
 
     return material;
   }

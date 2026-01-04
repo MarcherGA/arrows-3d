@@ -1,0 +1,49 @@
+import { Scene, Vector3, Color3 } from "@babylonjs/core";
+import { BaseBlock, Direction } from "./BaseBlock";
+import { GameConfig } from "../config/GameConfig";
+
+/**
+ * StandardBlock - Basic block with default behavior
+ */
+export class StandardBlock extends BaseBlock {
+  constructor(
+    scene: Scene,
+    worldPosition: Vector3,
+    gridPosition: Vector3,
+    gridSize: Vector3,
+    direction: Direction,
+    color?: Color3,
+    parent?: any
+  ) {
+    super(scene, worldPosition, gridPosition, gridSize, direction, color, parent);
+  }
+
+  protected needsCustomMaterial(color?: Color3): boolean {
+    // Standard blocks only need custom material if they have a custom color
+    return !!color;
+  }
+
+  protected applyMaterial(color?: Color3): void {
+    if (color) {
+      const material = this.materialManager.getMaterialForColor(color);
+      this.mesh.material = material;
+    }
+    // Otherwise, use default wood texture from shared mesh
+  }
+
+  protected getArrowColor(): Color3 {
+    return GameConfig.COLOR.ARROW_COLOR;
+  }
+
+  protected onSetupComplete(): void {
+    // No additional setup needed for standard blocks
+  }
+
+  protected onFlyAwayStart(): void {
+    // No cleanup needed for standard blocks
+  }
+
+  protected onDispose(): void {
+    // No additional cleanup needed for standard blocks
+  }
+}
