@@ -44,6 +44,7 @@ export abstract class BaseBlock {
   protected _gridSize: Vector3;
   protected _isRemovable: boolean = false;
   protected _isAnimating: boolean = false;
+  protected _disposed: boolean = false;
   protected direction: Direction;
   protected materialManager: MaterialManager;
 
@@ -123,14 +124,20 @@ export abstract class BaseBlock {
   private async loadModel(worldPosition: Vector3, visualSize: Vector3, color?: Color3, parent?: any): Promise<void> {
     // If model already loaded, create instance immediately
     if (BaseBlock.sharedBeveledBox) {
-      this.setupInstance(worldPosition, visualSize, color, parent);
+      // Guard: don't create instance if block was disposed while waiting
+      if (!this._disposed) {
+        this.setupInstance(worldPosition, visualSize, color, parent);
+      }
       return;
     }
 
     // If already loading, wait for it
     if (BaseBlock.loadPromise) {
       await BaseBlock.loadPromise;
-      this.setupInstance(worldPosition, visualSize, color, parent);
+      // Guard: don't create instance if block was disposed while waiting
+      if (!this._disposed) {
+        this.setupInstance(worldPosition, visualSize, color, parent);
+      }
       return;
     }
 
@@ -172,17 +179,23 @@ export abstract class BaseBlock {
           BaseBlock.sharedBeveledBox.material = material;
           BaseBlock.sharedBeveledBox.setEnabled(false); // Hide the original
 
-          // Setup this instance now that model is loaded
-          this.setupInstance(worldPosition, visualSize, color, parent);
+          // Guard: don't create instance if block was disposed during load
+          if (!this._disposed) {
+            this.setupInstance(worldPosition, visualSize, color, parent);
+          }
         } else {
           console.error("No mesh with geometry found in beveled-cube.glb");
-          // Fallback to basic box
-          this.setupFallbackBox(worldPosition, visualSize, color, parent);
+          // Fallback to basic box (only if not disposed)
+          if (!this._disposed) {
+            this.setupFallbackBox(worldPosition, visualSize, color, parent);
+          }
         }
       } catch (error) {
         console.error("Error loading beveled-cube.glb:", error);
-        // Fallback to basic box
-        this.setupFallbackBox(worldPosition, visualSize, color, parent);
+        // Fallback to basic box (only if not disposed)
+        if (!this._disposed) {
+          this.setupFallbackBox(worldPosition, visualSize, color, parent);
+        }
       }
     })();
 
@@ -455,6 +468,9 @@ export abstract class BaseBlock {
    * Note: Materials are managed by MaterialManager and not disposed here
    */
   public dispose(): void {
+    // Set disposed flag to prevent late async callbacks from creating orphaned meshes
+    this._disposed = true;
+
     this.mesh.dispose();
     for (const arrow of this.arrows) {
       arrow.dispose();

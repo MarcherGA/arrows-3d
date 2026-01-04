@@ -47,7 +47,7 @@ export class LockedBlock extends BaseBlock {
     super(scene, worldPosition, gridPosition, gridSize, direction, color, parent);
   }
 
-  protected needsCustomMaterial(color?: Color3): boolean {
+  protected needsCustomMaterial(_color?: Color3): boolean {
     // LOCKED blocks always need custom material for grey color + transparency
     return true;
   }
@@ -55,8 +55,15 @@ export class LockedBlock extends BaseBlock {
   protected applyMaterial(color?: Color3): void {
     // Dark grey for locked blocks (darker and more visible)
     const lockedColor = color || new Color3(0.2, 0.2, 0.2);
-    const lockedMaterial = this.materialManager.getMaterialForColor(lockedColor);
+
+    // IMPORTANT: Create per-block material instead of using shared cached material
+    // Locked blocks need to animate alpha when unlocking, which conflicts with
+    // frozen shared materials. Each locked block gets its own unfrozen material.
+    const lockedMaterial = new StandardMaterial(`lockedBlock_${this.mesh.uniqueId}`, this.scene);
+    lockedMaterial.diffuseColor = lockedColor;
+    lockedMaterial.specularColor = new Color3(0.2, 0.2, 0.2);
     lockedMaterial.alpha = 0.3; // 30% transparency for initial locked state
+    // Don't freeze this material - we need to animate alpha when unlocking
     this.mesh.material = lockedMaterial;
   }
 
@@ -84,6 +91,11 @@ export class LockedBlock extends BaseBlock {
         overlay.dispose();
       }
       this.lockOverlays = [];
+    }
+
+    // Dispose per-block material (not managed by MaterialManager)
+    if (this.mesh.material) {
+      this.mesh.material.dispose();
     }
   }
 

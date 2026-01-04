@@ -20,7 +20,7 @@ export class KeyBlock extends BaseBlock {
     super(scene, worldPosition, gridPosition, gridSize, direction, color, parent);
   }
 
-  protected needsCustomMaterial(color?: Color3): boolean {
+  protected needsCustomMaterial(_color?: Color3): boolean {
     // KEY blocks always need custom material for gold color
     return true;
   }
@@ -28,8 +28,13 @@ export class KeyBlock extends BaseBlock {
   protected applyMaterial(color?: Color3): void {
     // Bright gold color for key blocks (highly visible)
     const goldColor = color || new Color3(1, 0.843, 0);
-    const goldMaterial = this.materialManager.getMaterialForColor(goldColor);
+
+    // IMPORTANT: Create per-block material instead of using shared cached material
+    // Key blocks need custom emissive color for glow effect, which conflicts with
+    // frozen shared materials. Each key block gets its own unfrozen material.
+    const goldMaterial = this.materialManager.getMaterialForColor(goldColor).clone(`keyBlock_${this.mesh.uniqueId}`);
     goldMaterial.emissiveColor = new Color3(0.3, 0.25, 0); // Add glow
+    goldMaterial.unfreeze(); // Unfreeze the cloned material so we can modify it
     this.mesh.material = goldMaterial;
     console.log("✨ Created KEY block with gold material");
   }
@@ -52,6 +57,11 @@ export class KeyBlock extends BaseBlock {
   protected onDispose(): void {
     // Ensure pulse animation is stopped
     this.stopPulseAnimation();
+
+    // Dispose per-block material (not managed by MaterialManager)
+    if (this.mesh.material) {
+      this.mesh.material.dispose();
+    }
   }
 
   /**
