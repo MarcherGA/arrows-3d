@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import viteCompression from 'vite-plugin-compression';
-import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   base: './', // Use relative paths for all assets (critical for playable ads)
@@ -9,12 +8,6 @@ export default defineConfig({
     viteCompression({
       algorithm: 'gzip',
       threshold: 0,
-    }),
-    // Bundle size visualization
-    visualizer({
-      filename: 'stats.html',
-      gzipSize: true,
-      brotliSize: true,
     }),
   ],
   build: {

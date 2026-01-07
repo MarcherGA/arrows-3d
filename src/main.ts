@@ -197,6 +197,10 @@ class Game {
    * Initialize game assets and start gameplay
    */
   private async initializeGame(): Promise<void> {
+    // Load theme palette FIRST before any materials are created
+    const { loadThemePalette, THEME_CONFIG } = await import("./config/GameConfig");
+    await loadThemePalette(THEME_CONFIG.CURRENT_THEME);
+
     // Initialize audio system in the background (non-blocking for fast startup)
     this.soundManager.initialize().then(() => {
       console.log('Audio system initialized');

@@ -7,6 +7,48 @@
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 
 /**
+ * Theme system configuration
+ */
+export const THEME_CONFIG = {
+  /** Current active theme */
+  CURRENT_THEME: 'wood',
+  /** Fallback theme if current fails to load */
+  FALLBACK_THEME: 'wood',
+  /** Base path for theme assets */
+  ASSET_BASE_PATH: '/assets/',
+  /** Version for cache busting */
+  VERSION: '1.0.0',
+} as const;
+
+/**
+ * Theme palette interface
+ */
+export interface ThemePalette {
+  name: string;
+  version: string;
+  babylon: {
+    blockDefault: [number, number, number];
+    arrowColor: [number, number, number];
+    background: [number, number, number, number];
+    keyColor: [number, number, number];
+    keyEmissive: [number, number, number];
+    lockedColor: [number, number, number];
+  };
+  css: {
+    headerBg: string;
+    currencyContainer: string;
+    bgBlue: string;
+    darkBlue: string;
+    gold: string;
+    green: string;
+    greenDark: string;
+  };
+}
+
+/** Current loaded palette (loaded dynamically) */
+let CURRENT_PALETTE: ThemePalette | null = null;
+
+/**
  * Animation timing and distance constants
  */
 export const ANIMATION_CONFIG = {
@@ -294,6 +336,130 @@ export const GAME_STATE = {
 } as const;
 
 export type GameState = (typeof GAME_STATE)[keyof typeof GAME_STATE];
+
+/**
+ * Get asset path for current theme
+ */
+export function getAssetPath(filename: string): string {
+  const base = `${THEME_CONFIG.ASSET_BASE_PATH}${THEME_CONFIG.CURRENT_THEME}/${filename}`;
+
+  // Add cache-busting in dev mode
+  if (import.meta.env.DEV) {
+    return `${base}?v=${THEME_CONFIG.VERSION || Date.now()}`;
+  }
+
+  return base;
+}
+
+/**
+ * Load theme palette from JSON file
+ */
+export async function loadThemePalette(themeName: string): Promise<ThemePalette> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(
+      `${THEME_CONFIG.ASSET_BASE_PATH}${themeName}/palette.json`,
+      { signal: controller.signal }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const palette: ThemePalette = await response.json();
+    CURRENT_PALETTE = palette;
+    console.log(`✅ Loaded theme: ${themeName}`);
+    return palette;
+
+  } catch (error: any) {
+    console.warn(`⚠️ Failed to load theme "${themeName}":`, error.message);
+
+    // Fallback to wood theme (if not already trying it)
+    if (themeName !== THEME_CONFIG.FALLBACK_THEME) {
+      console.log(`↩️ Falling back to theme: ${THEME_CONFIG.FALLBACK_THEME}`);
+      return loadThemePalette(THEME_CONFIG.FALLBACK_THEME);
+    }
+
+    // If even fallback fails, use hardcoded defaults
+    console.error('❌ All themes failed, using hardcoded defaults');
+    CURRENT_PALETTE = getHardcodedPalette();
+    return CURRENT_PALETTE;
+  }
+}
+
+/**
+ * Get hardcoded fallback palette (last resort)
+ */
+function getHardcodedPalette(): ThemePalette {
+  return {
+    name: "Default Fallback",
+    version: "1.0.0",
+    babylon: {
+      blockDefault: [1, 1, 1],
+      arrowColor: [0.459, 0.176, 0.016],
+      background: [0.2, 0.3, 0.4, 1],
+      keyColor: [1, 0.843, 0],
+      keyEmissive: [0.3, 0.25, 0],
+      lockedColor: [0.2, 0.2, 0.2],
+    },
+    css: {
+      headerBg: "#2358a6",
+      currencyContainer: "#1a4484",
+      bgBlue: "#3266d5",
+      darkBlue: "#1b47a1",
+      gold: "#f4d34d",
+      green: "#7dc001",
+      greenDark: "#5e9101",
+    },
+  };
+}
+
+/**
+ * Get current loaded palette
+ */
+export function getPalette(): ThemePalette {
+  if (!CURRENT_PALETTE) {
+    throw new Error('Theme palette not loaded. Call loadThemePalette() first.');
+  }
+  return CURRENT_PALETTE;
+}
+
+/**
+ * Convenience getters for Babylon.js colors
+ */
+export function getBlockColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.blockDefault;
+  return new Color3(r, g, b);
+}
+
+export function getArrowColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.arrowColor;
+  return new Color3(r, g, b);
+}
+
+export function getBackgroundColor(): Color4 {
+  const [r, g, b, a] = getPalette().babylon.background;
+  return new Color4(r, g, b, a);
+}
+
+export function getKeyColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.keyColor;
+  return new Color3(r, g, b);
+}
+
+export function getKeyEmissiveColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.keyEmissive;
+  return new Color3(r, g, b);
+}
+
+export function getLockedColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.lockedColor;
+  return new Color3(r, g, b);
+}
 
 /**
  * Unified configuration object for easy access

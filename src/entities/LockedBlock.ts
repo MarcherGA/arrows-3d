@@ -7,7 +7,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Animation} from "@babylonjs/core/Animations/animation";
 import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
 import { BaseBlock, Direction } from "./BaseBlock";
-import { GameConfig } from "../config/GameConfig";
+import { GameConfig, getLockedColor, getAssetPath } from "../config/GameConfig";
 
 /**
  * LockedBlock - Grey block with lock overlays and unlock behavior
@@ -50,8 +50,8 @@ export class LockedBlock extends BaseBlock {
   }
 
   protected applyMaterial(color?: Color3): void {
-    // Dark grey for locked blocks (darker and more visible)
-    const lockedColor = color || new Color3(0.2, 0.2, 0.2);
+    // Get theme color for locked blocks
+    const lockedColor = color || getLockedColor();
 
     // IMPORTANT: Create per-block material instead of using shared cached material
     // Locked blocks need to animate alpha when unlocking, which conflicts with
@@ -113,7 +113,7 @@ export class LockedBlock extends BaseBlock {
     ];
 
     const visualSize = this.gridSizeToVisualSize(this._gridSize);
-    const lockTexture = this.materialManager.getTexture("/textures/lock-chain.png");
+    const lockTexture = this.materialManager.getTexture(getAssetPath("lock-overlay.png"));
 
     for (const face of allFaces) {
       // Create a plane for this face

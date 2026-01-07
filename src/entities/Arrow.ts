@@ -5,7 +5,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { GameConfig } from "../config/GameConfig";
+import { GameConfig, getAssetPath, getArrowColor } from "../config/GameConfig";
 import { positionArrowOnFace } from "../systems/ArrowSystem";
 import { Direction } from "./Block";
 import { MaterialManager } from "../systems/MaterialManager";
@@ -42,10 +42,10 @@ export class Arrow {
 
     // Use shared material from MaterialManager
     const materialManager = MaterialManager.getInstance(scene);
-    const arrowColor = color || GameConfig.COLOR.ARROW_COLOR;
+    const arrowColor = color || getArrowColor();
     this.mesh.material = materialManager.getArrowMaterial(
       arrowColor,
-      "/icons/arrow.png"
+      getAssetPath("arrow-icon.png")
     );
     this.mesh.renderingGroupId = 0;
     this.mesh.isPickable = false;

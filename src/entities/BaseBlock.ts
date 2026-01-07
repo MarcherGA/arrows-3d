@@ -11,7 +11,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import "@babylonjs/loaders/glTF";
-import { GameConfig } from "../config/GameConfig";
+import { GameConfig, getAssetPath } from "../config/GameConfig";
 import { MaterialManager } from "../systems/MaterialManager";
 import { Arrow } from "./Arrow";
 
@@ -95,7 +95,7 @@ export abstract class BaseBlock {
 
     // Create shared wood texture if not exists
     if (!BaseBlock.sharedWoodTexture) {
-      BaseBlock.sharedWoodTexture = new Texture("/textures/wood-texture.jpg", scene);
+      BaseBlock.sharedWoodTexture = new Texture(getAssetPath("block-texture.jpg"), scene);
     }
 
     // Load GLB model asynchronously
