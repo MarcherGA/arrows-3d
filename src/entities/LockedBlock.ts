@@ -7,7 +7,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Animation} from "@babylonjs/core/Animations/animation";
 import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
 import { BaseBlock, Direction } from "./BaseBlock";
-import { GameConfig, getLockedColor, getAssetPath } from "../config/GameConfig";
+import { GameConfig, getLockedColor, getLockedArrowColor, getAssetPath } from "../config/GameConfig";
 
 /**
  * LockedBlock - Grey block with lock overlays and unlock behavior
@@ -65,8 +65,8 @@ export class LockedBlock extends BaseBlock {
   }
 
   protected getArrowColor(): Color3 {
-    // Very light grey for locked blocks (visible on medium grey)
-    return new Color3(0.7, 0.7, 0.7);
+    // Use theme-specific locked arrow color
+    return getLockedArrowColor();
   }
 
   protected onSetupComplete(): void {

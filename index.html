@@ -507,9 +507,16 @@
             :root {
               --bg-blue: ${palette.css.bgBlue};
               --dark-blue: ${palette.css.darkBlue};
-              --gold: ${palette.css.gold};
-              --green: ${palette.css.green};
-              --green-dark: ${palette.css.greenDark};
+              --gold: ${palette.css.accent || palette.css.gold};
+              --green: ${palette.css.buttonPrimary || palette.css.green};
+              --green-dark: ${palette.css.buttonPrimaryDark || palette.css.greenDark};
+              --accent: ${palette.css.accent || palette.css.gold};
+              --accent-dark: ${palette.css.accentDark || palette.css.darkBlue};
+              --currency-pill: ${palette.css.currencyPill || palette.css.darkBlue};
+              --button-primary: ${palette.css.buttonPrimary || palette.css.green};
+              --button-primary-dark: ${palette.css.buttonPrimaryDark || palette.css.greenDark};
+              --button-secondary: ${palette.css.buttonSecondary || palette.css.buttonPrimary || palette.css.green};
+              --button-secondary-dark: ${palette.css.buttonSecondaryDark || palette.css.buttonPrimaryDark || palette.css.greenDark};
             }
 
             html, body {
@@ -522,6 +529,42 @@
 
             .currency-container {
               background-color: ${palette.css.currencyContainer} !important;
+            }
+
+            /* Overlay accent colors */
+            .top-section,
+            .bottom-section {
+              border-color: var(--accent) !important;
+            }
+
+            .level-header {
+              border-color: var(--accent) !important;
+            }
+
+            /* Currency pill in overlay */
+            .cash-pill {
+              background-color: var(--currency-pill) !important;
+            }
+
+            /* Button colors */
+            .btn {
+              background: linear-gradient(to bottom, var(--button-primary) 0%, var(--button-primary-dark) 100%) !important;
+              border-color: var(--button-primary) !important;
+              box-shadow: 0 4px 0px var(--button-primary-dark), 0 6px 10px rgba(0,0,0,0.3) !important;
+            }
+
+            .btn:active {
+              box-shadow: 0 2px 0px var(--button-primary-dark) !important;
+            }
+
+            .btn-home {
+              background: linear-gradient(to bottom, var(--button-secondary) 0%, var(--button-secondary-dark) 100%) !important;
+              border-color: var(--button-secondary) !important;
+              box-shadow: 0 4px 0px var(--button-secondary-dark), 0 6px 10px rgba(0,0,0,0.3) !important;
+            }
+
+            .btn-home:active {
+              box-shadow: 0 2px 0px var(--button-secondary-dark) !important;
             }
           `;
           document.head.appendChild(themeStyles);

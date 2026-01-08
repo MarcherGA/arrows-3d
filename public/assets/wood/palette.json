@@ -1,10 +1,11 @@
 {
   "name": "Wood Nature",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "babylon": {
     "blockDefault": [1.0, 1.0, 1.0],
     "arrowColor": [0.459, 0.176, 0.016],
     "keyArrowColor": [0.1, 0.1, 0.1],
+    "lockedArrowColor": [0.3, 0.3, 0.3],
     "background": [0.2, 0.3, 0.4, 1.0],
     "keyColor": [1.0, 0.843, 0.0],
     "keyEmissive": [0.3, 0.25, 0.0],
@@ -13,10 +14,14 @@
   "css": {
     "headerBg": "#2358a6",
     "currencyContainer": "#1a4484",
+    "currencyPill": "#1b47a1",
     "bgBlue": "#3266d5",
     "darkBlue": "#1b47a1",
-    "gold": "#f4d34d",
-    "green": "#7dc001",
-    "greenDark": "#5e9101"
+    "accent": "#f4d34d",
+    "accentDark": "#c4a83d",
+    "buttonPrimary": "#7dc001",
+    "buttonPrimaryDark": "#5e9101",
+    "buttonSecondary": "#7dc001",
+    "buttonSecondaryDark": "#5e9101"
   }
 }

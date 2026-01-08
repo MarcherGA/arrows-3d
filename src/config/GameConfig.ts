@@ -30,6 +30,7 @@ export interface ThemePalette {
     blockDefault: [number, number, number];
     arrowColor: [number, number, number];
     keyArrowColor: [number, number, number];
+    lockedArrowColor: [number, number, number];
     background: [number, number, number, number];
     keyColor: [number, number, number];
     keyEmissive: [number, number, number];
@@ -38,11 +39,15 @@ export interface ThemePalette {
   css: {
     headerBg: string;
     currencyContainer: string;
+    currencyPill: string;
     bgBlue: string;
     darkBlue: string;
-    gold: string;
-    green: string;
-    greenDark: string;
+    accent: string;
+    accentDark: string;
+    buttonPrimary: string;
+    buttonPrimaryDark: string;
+    buttonSecondary: string;
+    buttonSecondaryDark: string;
   };
 }
 
@@ -403,6 +408,7 @@ function getHardcodedPalette(): ThemePalette {
       blockDefault: [1, 1, 1],
       arrowColor: [0.459, 0.176, 0.016],
       keyArrowColor: [0.1, 0.1, 0.1],
+      lockedArrowColor: [0.3, 0.3, 0.3],
       background: [0.2, 0.3, 0.4, 1],
       keyColor: [1, 0.843, 0],
       keyEmissive: [0.3, 0.25, 0],
@@ -411,11 +417,15 @@ function getHardcodedPalette(): ThemePalette {
     css: {
       headerBg: "#2358a6",
       currencyContainer: "#1a4484",
+      currencyPill: "#1b47a1",
       bgBlue: "#3266d5",
       darkBlue: "#1b47a1",
-      gold: "#f4d34d",
-      green: "#7dc001",
-      greenDark: "#5e9101",
+      accent: "#f4d34d",
+      accentDark: "#c4a83d",
+      buttonPrimary: "#7dc001",
+      buttonPrimaryDark: "#5e9101",
+      buttonSecondary: "#7dc001",
+      buttonSecondaryDark: "#5e9101",
     },
   };
 }
@@ -445,6 +455,11 @@ export function getArrowColor(): Color3 {
 
 export function getKeyArrowColor(): Color3 {
   const [r, g, b] = getPalette().babylon.keyArrowColor;
+  return new Color3(r, g, b);
+}
+
+export function getLockedArrowColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.lockedArrowColor;
   return new Color3(r, g, b);
 }
 

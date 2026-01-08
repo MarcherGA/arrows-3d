@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "project": {
     "name": "Arrow Block 3D",
     "description": "3D puzzle game with themeable visual assets"
@@ -9,7 +9,8 @@
     "themeFolder": "public/assets/{themeName}/",
     "tempFolder": "temp/{themeName}/",
     "configFile": "src/config/GameConfig.ts",
-    "configUpdatePattern": "CURRENT_THEME: '{themeName}'"
+    "configUpdatePattern": "CURRENT_THEME: '{themeName}'",
+    "cleanupTempFolder": true
   },
   "constraints": {
     "totalBundleSize": "5MB",
@@ -18,23 +19,40 @@
     "encodingOverhead": 1.33,
     "notes": "HTML5 playable ad with assets inlined as Base64"
   },
+  "postProcessing": {
+    "resizeHelper": ".skills/image-resize-helper.js",
+    "resizeStrategy": {
+      "icons": "contain-centered",
+      "textures": "cover-crop",
+      "backgrounds": "cover-crop"
+    }
+  },
   "assetTypes": {
+    "_comment": "Each asset type includes 'modelParameters' for Flux API. Use 'aspect_ratio: custom' for custom dimensions (512x512, 256x256, 1920x1080) or '1:1' for square preset (which generates 1024x1024 then gets resized).",
     "block-texture": {
       "filename": "block-texture.jpg",
       "dimensions": { "width": 512, "height": 512 },
       "format": "JPEG",
       "sizeTarget": "150KB",
       "model": "black-forest-labs/flux-1.1-pro",
-      "critical": "SEAMLESS TILEABLE (wraps on all 4 edges without visible seams)",
-      "usage": "Applied as material to all block faces in the 3D scene",
-      "postProcessing": ["JPEG compression (quality 85%)"],
+      "modelParameters": {
+        "aspect_ratio": "custom"
+      },
+      "critical": "SEAMLESS TILEABLE + UNIFORM SCALE (wraps on all 4 edges without visible seams, looks good when stretched non-uniformly)",
+      "usage": "Applied as material to all block faces in the 3D scene - may be stretched on non-square faces",
+      "postProcessing": [
+        "Resize to exact dimensions (cover-crop)",
+        "JPEG compression (quality 85%)"
+      ],
       "styleReference": null,
-      "promptTemplate": "Create a seamless, tileable texture for a 3D cube surface.\n\nREQUIREMENTS:\n- Perfectly seamless edges (wraps on all sides)\n- Flat, simple style (not overly detailed)\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges, photorealistic, complex details, busy patterns",
-      "critiquePrompt": "Analyze this texture that will be used on 3D cube faces:\n1. Are the edges seamless? (Check all 4 edges - can it tile without visible seams?)\n2. Does it match the \"{THEME_NAME}\" theme aesthetic?\n3. Is there appropriate visual interest without being overwhelming?\n4. Are there any obvious artifacts, text, or watermarks?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a seamless, tileable texture for a 3D cube surface.\n\nREQUIREMENTS:\n- Perfectly seamless edges (wraps on all sides)\n- UNIFORM pattern that looks good even when stretched non-uniformly\n- Avoid directional patterns or elements that look distorted when scaled\n- Flat, simple style (not overly detailed)\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges, photorealistic, complex details, busy patterns, directional elements, perspective lines",
+      "critiquePrompt": "Analyze this texture that will be used on 3D cube faces:\n1. Are the edges seamless? (Check all 4 edges - can it tile without visible seams?)\n2. Does it match the \"{THEME_NAME}\" theme aesthetic?\n3. Is there appropriate visual interest without being overwhelming?\n4. Would this look acceptable if stretched non-uniformly (e.g., 1:2 ratio)? Avoid strong directional patterns.\n5. Are there any obvious artifacts, text, or watermarks?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "All 4 edges are seamless (test by tiling 2x2)",
         "Visual interest without overwhelming detail",
         "Works when viewed from multiple angles",
+        "Looks acceptable when stretched non-uniformly",
+        "No strong directional patterns that distort when scaled",
         "Appropriate contrast for arrow visibility",
         "Matches theme aesthetic"
       ]
@@ -45,18 +63,24 @@
       "format": "PNG",
       "sizeTarget": "20KB",
       "model": "black-forest-labs/flux-schnell",
-      "critical": "Points upward, transparent background, simple design",
+      "modelParameters": {
+        "aspect_ratio": "custom"
+      },
+      "critical": "Points upward, transparent background, simple design, CENTERED in frame",
       "usage": "Displayed on block faces to indicate pull direction",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "Alpha erosion (1px)",
+        "Center in frame (contain-centered)",
+        "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple arrow icon pointing UPWARD.\n\nREQUIREMENTS:\n- Just the arrow shape, nothing else\n- Points straight UP (↑)\n- Transparent background\n- Flat, simple style\n- Square 256x256\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background elements, decorative borders, complex details, gradient backgrounds, shadows, 3D effects, realistic, detailed, ornate",
-      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the background transparent (no white/gray edges)?\n3. Is it simple and readable at small sizes?\n4. Does it match the \"{THEME_NAME}\" theme?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a simple arrow icon pointing UPWARD, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Just the arrow shape, nothing else\n- Points straight UP (up arrow)\n- CENTERED in the middle of the frame\n- Transparent background\n- Flat, simple style\n- Square 256x256\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background elements, decorative borders, complex details, gradient backgrounds, shadows, 3D effects, realistic, detailed, ornate, off-center, asymmetric placement",
+      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is the background transparent (no white/gray edges)?\n4. Is it simple and readable at small sizes?\n5. Does it match the \"{THEME_NAME}\" theme?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Clearly points UPWARD (will be rotated for other directions)",
+        "CENTERED in the frame with equal padding on all sides",
         "Transparent background (no white/gray edges or halos)",
         "Simple, bold design (readable at 64x64 pixels)",
         "Matches theme aesthetic",
@@ -65,19 +89,25 @@
     },
     "background": {
       "filename": "background.jpg",
-      "dimensions": { "width": 1920, "height": 1080 },
+      "dimensions": { "width": 768, "height": 1344 },
       "format": "JPEG",
       "sizeTarget": "100KB",
       "model": "black-forest-labs/flux-dev",
+      "modelParameters": {
+        "aspect_ratio": "custom"
+      },
       "critical": "Non-distracting, suitable for UI overlay",
       "usage": "Full-screen background behind the 3D scene and UI",
-      "postProcessing": ["JPEG compression (quality 85%)"],
+      "postProcessing": [
+        "Resize to exact dimensions (cover-crop, no stretching)",
+        "JPEG compression (quality 85%)"
+      ],
       "styleReference": {
         "asset": "block-texture",
         "promptStrength": 0.7,
         "rationale": "Ensures background atmosphere matches material style"
       },
-      "promptTemplate": "Create an atmospheric background for a puzzle game.\n\nREQUIREMENTS:\n- Non-distracting, simple gradient or blur\n- Flat, minimal style\n- 1920x1080\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: detailed foreground, busy patterns, complex elements, photorealistic, text, UI elements, characters",
+      "promptTemplate": "Create an atmospheric background for a puzzle game.\n\nREQUIREMENTS:\n- Non-distracting, simple gradient or blur\n- Flat, minimal style\n- Portrait orientation 768x1344\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: detailed foreground, busy patterns, complex elements, photorealistic, text, UI elements, characters",
       "critiquePrompt": "Analyze this background image for a puzzle game:\n1. Is it non-distracting (could you comfortably place UI and game elements on top)?\n2. Does it match the \"{THEME_NAME}\" theme?\n3. Are there any focal points that would compete for attention?\n4. Is the color palette appropriate?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Non-distracting (blurred, gradient, or atmospheric)",
@@ -93,11 +123,17 @@
       "format": "PNG",
       "sizeTarget": "50KB",
       "model": "black-forest-labs/flux-1.1-pro",
-      "critical": "Clear 'locked' symbolism, transparent background",
+      "modelParameters": {
+        "aspect_ratio": "custom"
+      },
+      "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED",
       "usage": "Overlaid on locked blocks to indicate they cannot be removed",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
-        "Alpha erosion (1px)",
+        "White color removal (threshold 240)",
+        "Alpha erosion (2px)",
+        "Center in frame (contain-centered)",
+        "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": {
@@ -105,11 +141,13 @@
         "promptStrength": 0.7,
         "rationale": "Ensures overlay material matches block material style"
       },
-      "promptTemplate": "Create a simple lock/chain overlay icon.\n\nREQUIREMENTS:\n- Clear 'locked' symbol (padlock, chain, etc.)\n- Transparent background\n- Flat, simple style\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background, complex details, photorealistic, 3D effects, shadows, text, watermarks",
-      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background transparent?\n3. Does it match the \"{THEME_NAME}\" theme?\n4. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a simple lock/chain overlay icon with NO WHITE anywhere.\n\nREQUIREMENTS:\n- Clear 'locked' symbol (padlock, chain, etc.)\n- FULLY transparent background - NO WHITE OR LIGHT GRAY anywhere\n- Use only dark or colored elements\n- Flat, simple style\n- CENTERED in frame\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: white background, white fill, light colors, white elements, complex details, photorealistic, 3D effects, shadows, text, watermarks, off-center",
+      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining.",
       "qualityChecklist": [
         "Immediately recognizable as lock/chain/barrier",
-        "Transparent background (no white halos)",
+        "FULLY transparent background (no white halos or fills)",
+        "NO white or near-white colors inside the icon",
+        "CENTERED in the frame",
         "Visible when overlaid on various block textures",
         "Matches theme aesthetic",
         "Sufficient contrast with block materials"
@@ -121,18 +159,24 @@
       "format": "PNG",
       "sizeTarget": "20KB",
       "model": "black-forest-labs/flux-schnell",
-      "critical": "Simple, iconic, readable at small sizes",
+      "modelParameters": {
+        "aspect_ratio": "1:1"
+      },
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame",
       "usage": "Coin/currency indicator in header",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "Alpha erosion (1px)",
+        "Center in frame (contain-centered)",
+        "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple currency/coin icon.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text",
-      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the background transparent?\n3. Does it match the \"{THEME_NAME}\" theme?\n4. Is the symbolism clear?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a simple currency/coin icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, off-center, asymmetric placement",
+      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Is the symbolism clear?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
+        "CENTERED in the frame",
         "Transparent background (no halos)",
         "Matches theme aesthetic",
         "Appropriate symbolism for function"
@@ -144,22 +188,33 @@
       "format": "PNG",
       "sizeTarget": "20KB",
       "model": "black-forest-labs/flux-schnell",
-      "critical": "Simple, iconic, readable at small sizes",
-      "usage": "Victory screen icon (piggy bank represents currency savings/goal)",
+      "modelParameters": {
+        "aspect_ratio": "1:1"
+      },
+      "critical": "Simple SOLID SILHOUETTE style (will be filled with white via CSS filter), CENTERED",
+      "usage": "Victory screen icon (piggy bank represents currency savings/goal) - displayed with CSS filter: brightness(0) invert(1)",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "Alpha erosion (1px)",
+        "Center in frame (contain-centered)",
+        "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple piggy bank icon.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text",
-      "critiquePrompt": "Analyze this piggy bank icon:\n1. Is it simple and readable at small sizes?\n2. Is the background transparent?\n3. Does it match the \"{THEME_NAME}\" theme?\n4. Does it clearly represent a piggy bank?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a simple piggy bank SILHOUETTE icon, perfectly CENTERED. This icon will be displayed as a solid white fill.\n\nREQUIREMENTS:\n- Simple, flat SOLID silhouette style (single color fill)\n- CENTERED in the middle of the frame\n- Transparent background\n- Clear piggy bank shape recognizable as silhouette\n- Square 128x128\n\nSTYLE: Simple solid silhouette that works with {THEME_DESCRIPTION} when shown as white fill\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, multiple colors, off-center, internal details",
+      "critiquePrompt": "Analyze this piggy bank icon:\n1. Is it a simple SOLID shape that would work well as a silhouette?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it clearly represent a piggy bank even as a simple shape?\n5. Would it look good when displayed as solid white (CSS filter invert)?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
-        "Simple, iconic design (readable at small sizes)",
+        "Simple SOLID silhouette design (works as single-color fill)",
+        "CENTERED in the frame",
         "Transparent background (no halos)",
-        "Matches theme aesthetic",
-        "Appropriate symbolism for function"
-      ]
+        "Clearly recognizable as piggy bank",
+        "Works well when CSS-inverted to white"
+      ],
+      "alternativeStrategy": {
+        "useCommonAsset": true,
+        "commonAssetPath": "public/assets/common/icons/piggy-bank.png",
+        "rationale": "If silhouette generation is inconsistent, use a single common piggy bank icon for all themes since it's CSS-inverted to white anyway"
+      }
     },
     "logo": {
       "filename": "logo.png",
@@ -167,18 +222,24 @@
       "format": "PNG",
       "sizeTarget": "20KB",
       "model": "black-forest-labs/flux-schnell",
-      "critical": "Simple, iconic, readable at small sizes",
-      "usage": "Game logo/branding",
+      "modelParameters": {
+        "aspect_ratio": "1:1"
+      },
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame",
+      "usage": "Game logo/branding (favicon)",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "Alpha erosion (1px)",
+        "Center in frame (contain-centered)",
+        "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple game logo icon.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text",
-      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the background transparent?\n3. Does it match the \"{THEME_NAME}\" theme?\n4. Is it memorable and distinctive?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a simple game logo icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, off-center, asymmetric placement",
+      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Is it memorable and distinctive?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
+        "CENTERED in the frame",
         "Transparent background (no halos)",
         "Matches theme aesthetic",
         "Appropriate symbolism for function"
@@ -193,8 +254,9 @@
       "version": "string (1.0.0)",
       "babylon": {
         "blockDefault": "number[3] (RGB normalized 0-1)",
-        "arrowColor": "number[3] (RGB normalized 0-1)",
+        "arrowColor": "number[3] (RGB normalized 0-1) - MUST contrast with block texture",
         "keyArrowColor": "number[3] (RGB normalized 0-1 - dark color for key block arrows)",
+        "lockedArrowColor": "number[3] (RGB normalized 0-1 - color for locked block arrows)",
         "background": "number[4] (RGBA normalized 0-1)",
         "keyColor": "number[3] (RGB normalized 0-1)",
         "keyEmissive": "number[3] (RGB normalized 0-1)",
@@ -203,22 +265,26 @@
       "css": {
         "headerBg": "string (hex color)",
         "currencyContainer": "string (hex color)",
-        "bgBlue": "string (hex color)",
-        "darkBlue": "string (hex color)",
-        "gold": "string (hex color)",
-        "green": "string (hex color)",
-        "greenDark": "string (hex color)"
+        "currencyPill": "string (hex color) - pill background in overlay",
+        "bgBlue": "string (hex color) - primary UI accent",
+        "darkBlue": "string (hex color) - dark UI variant",
+        "accent": "string (hex color) - overlay border and highlights (theme-specific, e.g., gold, pink, cyan)",
+        "accentDark": "string (hex color) - darker variant of accent",
+        "buttonPrimary": "string (hex color) - primary button color (e.g., green for success)",
+        "buttonPrimaryDark": "string (hex color) - primary button dark variant",
+        "buttonSecondary": "string (hex color) - secondary button color (can match primary or be different)",
+        "buttonSecondaryDark": "string (hex color) - secondary button dark variant"
       }
     },
     "extractionStrategy": {
       "blockTexture": {
-        "prompt": "Analyze this seamless texture for a \"{themeName}\" themed game.\nTheme description: {themeDescription}\n\nExtract the color palette that would work best for:\n1. Block default color (most representative base color)\n2. Background scene color (darkest, atmospheric tone)\n3. Arrow indicator color (contrasting, visible on blocks)\n4. Locked block color (desaturated, muted variant)\n\nConsider the overall aesthetic and ensure colors are harmonious.\n\nReturn RGB values (0-255) as JSON:\n{\n  \"blockDefault\": [r, g, b],\n  \"background\": [r, g, b, a],\n  \"arrowColor\": [r, g, b],\n  \"lockedColor\": [r, g, b]\n}"
+        "prompt": "Analyze this seamless texture for a \"{themeName}\" themed game.\nTheme description: {themeDescription}\n\nExtract the color palette that would work best for:\n1. Block default color (most representative base color)\n2. Background scene color (darkest, atmospheric tone)\n3. Arrow indicator color (MUST CONTRAST STRONGLY with the texture - pick a color that will be clearly visible on this texture)\n4. Locked block color (desaturated, muted variant)\n5. Locked arrow color (should be visible on the locked block color)\n\nIMPORTANT: The arrow color must be highly visible against the texture. If the texture is dark, use a bright color. If it has neon elements, pick a complementary bright color.\n\nConsider the overall aesthetic and ensure colors are harmonious.\n\nReturn RGB values (0-255) as JSON:\n{\n  \"blockDefault\": [r, g, b],\n  \"background\": [r, g, b, a],\n  \"arrowColor\": [r, g, b],\n  \"lockedColor\": [r, g, b],\n  \"lockedArrowColor\": [r, g, b]\n}"
       },
       "lockOverlay": {
         "prompt": "Analyze this lock overlay icon for a \"{themeName}\" themed game.\n\nFind the single BRIGHTEST, most SATURATED, most VISUALLY IMPACTFUL color.\n\nThis color will be used for:\n- Key block color (the goal block players must reach)\n- Emissive glow effect (needs maximum visual hierarchy and pop)\n\nChoose the color that would create the strongest visual contrast and immediately draw the player's eye.\n\nReturn the single best color as JSON:\n{\n  \"keyColor\": [r, g, b],\n  \"reasoning\": \"why this color creates maximum visual impact\"\n}"
       },
       "cssColors": {
-        "prompt": "Based on these \"{themeName}\" themed assets, suggest 7 CSS hex colors:\n\n1. headerBg - Header background\n2. currencyContainer - Currency display background\n3. bgBlue - Primary UI accent\n4. darkBlue - Dark UI variant\n5. gold - Highlight/currency color\n6. green - Success/win/button color\n7. greenDark - Dark success/button variant\n\nEnsure harmony with {themeName} aesthetic and good UI readability.\n\nReturn as JSON:\n{\n  \"headerBg\": \"#hex\",\n  \"currencyContainer\": \"#hex\",\n  \"bgBlue\": \"#hex\",\n  \"darkBlue\": \"#hex\",\n  \"gold\": \"#hex\",\n  \"green\": \"#hex\",\n  \"greenDark\": \"#hex\"\n}"
+        "prompt": "Based on these \"{themeName}\" themed assets, suggest CSS hex colors for the UI:\n\n1. headerBg - Header background (dark, matches theme)\n2. currencyContainer - Currency display background (slightly darker than header)\n3. currencyPill - Currency pill in overlay (dark background for white text)\n4. bgBlue - Primary UI background accent\n5. darkBlue - Dark UI variant\n6. accent - Theme accent color for borders and highlights (NOT always gold - match theme: cyberpunk=neon pink/cyan, medieval=gold, nature=green, etc.)\n7. accentDark - Darker variant of accent\n8. buttonPrimary - Primary button color (success/action - can be green or theme-appropriate)\n9. buttonPrimaryDark - Primary button shadow/dark variant\n10. buttonSecondary - Secondary button color (can match primary or complement it)\n11. buttonSecondaryDark - Secondary button shadow\n\nIMPORTANT: The 'accent' color should match the theme aesthetic, NOT default to gold. For cyberpunk, use neon colors. For nature, use greens. For medieval, use gold.\n\nEnsure harmony with {themeName} aesthetic and good UI readability.\n\nReturn as JSON:\n{\n  \"headerBg\": \"#hex\",\n  \"currencyContainer\": \"#hex\",\n  \"currencyPill\": \"#hex\",\n  \"bgBlue\": \"#hex\",\n  \"darkBlue\": \"#hex\",\n  \"accent\": \"#hex\",\n  \"accentDark\": \"#hex\",\n  \"buttonPrimary\": \"#hex\",\n  \"buttonPrimaryDark\": \"#hex\",\n  \"buttonSecondary\": \"#hex\",\n  \"buttonSecondaryDark\": \"#hex\"\n}"
       }
     }
   },
@@ -239,7 +305,13 @@
       "dimensions": true,
       "format": true,
       "transparency": true,
-      "visionCritique": true
+      "visionCritique": true,
+      "centering": true,
+      "whiteRemoval": true
+    },
+    "postGeneration": {
+      "resizeAllAssets": true,
+      "cleanupTempFolder": true
     }
   },
   "dependencies": {
@@ -251,6 +323,11 @@
       "required": false,
       "scriptPath": ".skills/tech-artist-generate-asset/post-process.js",
       "fallback": "Use Sharp library directly"
+    },
+    "resizeHelper": {
+      "required": true,
+      "scriptPath": ".skills/image-resize-helper.js",
+      "fallback": "Use Sharp library with manual resize commands"
     },
     "colorExtractionScript": {
       "required": false,
