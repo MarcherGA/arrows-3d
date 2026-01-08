@@ -41,7 +41,7 @@ Uses `.asset-gen-config.json` from project root:
     "cleanupTempFolder": true
   },
   "postProcessing": {
-    "resizeHelper": ".skills/image-resize-helper.js",
+    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.js",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
@@ -101,7 +101,7 @@ for (const assetType of assetTypes.filter(a => a !== heroAsset)) {
 **CRITICAL:** All assets must be resized to exact dimensions specified in config.
 
 ```typescript
-// Use image-resize-helper.js for all post-processing
+// Use image-resize-helper.js from tech-artist-generate-asset for all post-processing
 const resizeHelper = config.postProcessing.resizeHelper;
 
 for (const [assetType, assetConfig] of Object.entries(config.assetTypes)) {
@@ -315,7 +315,7 @@ if (bundleSize > maxSize) {
 - Sharp library for image processing
 - Claude vision API
 - Project-specific build tools
-- image-resize-helper.js utility
+- image-resize-helper.js utility (from tech-artist-generate-asset)
 
 ## Error Handling
 
@@ -341,7 +341,7 @@ if (bundleSize > maxSize) {
 ## Setup for New Project
 
 1. Copy `.asset-gen-config.json` template to project root
-2. Copy `image-resize-helper.js` to `.skills/` folder
+2. Ensure `image-resize-helper.js` is in `.skills/tech-artist-generate-asset/` folder
 3. Customize configuration:
    - Define all asset types needed
    - Set output paths for your project structure

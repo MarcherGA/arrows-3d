@@ -20,7 +20,7 @@
     "notes": "HTML5 playable ad with assets inlined as Base64"
   },
   "postProcessing": {
-    "resizeHelper": ".skills/image-resize-helper.js",
+    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.js",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
@@ -326,7 +326,7 @@
     },
     "resizeHelper": {
       "required": true,
-      "scriptPath": ".skills/image-resize-helper.js",
+      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.js",
       "fallback": "Use Sharp library with manual resize commands"
     },
     "colorExtractionScript": {

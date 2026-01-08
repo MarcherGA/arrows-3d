@@ -12,7 +12,10 @@
       "Bash(cat:*)",
       "Bash(powershell -Command \"\\(Get-Content ''.skills\\\\tech-artist-generate-asset\\\\skill.md''\\).Count; \\(Get-Content ''.skills\\\\tech-artist-reskin\\\\skill.md''\\).Count\")",
       "Bash(mkdir:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "mcp__replicate__create_predictions",
+      "Bash(node:*)",
+      "Bash(mv:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
