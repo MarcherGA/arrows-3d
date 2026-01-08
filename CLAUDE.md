@@ -33,13 +33,22 @@ public/assets/
 │   ├── background.jpg       # 1920x1080, game background
 │   ├── lock-overlay.png     # 512x512, transparent lock icon
 │   ├── currency-icon.png    # 128x128, transparent coin icon
-│   ├── win-icon.png         # 128x128, transparent piggy bank
+│   ├── piggy-bank.png       # 128x128, transparent piggy bank
 │   ├── logo.png             # 128x128, transparent game logo
 │   └── palette.json         # Color definitions (Babylon.js + CSS)
 │
 ├── cyberpunk/               # Example: Neon cyberpunk theme
 │   ├── (same 7 assets + palette.json)
 │   └── ...
+│
+└── common/                  # Shared assets (not theme-specific)
+    ├── models/
+    │   └── beveled-cube.glb # 3D block model
+    └── sounds/
+        ├── background-music.ogg
+        ├── block-blocked.ogg
+        ├── block-moved.ogg
+        └── win-sound.ogg
 ```
 
 ### Switching Themes
@@ -64,6 +73,7 @@ Each theme includes a `palette.json` file that defines **all colors** used in th
   "babylon": {
     "blockDefault": [1.0, 1.0, 1.0],           // RGB normalized (0-1)
     "arrowColor": [0.459, 0.176, 0.016],       // Arrow icon color
+    "keyArrowColor": [0.05, 0.05, 0.05],       // Dark arrow color for key blocks
     "background": [0.2, 0.3, 0.4, 1.0],        // Scene background (RGBA)
     "keyColor": [1.0, 0.843, 0.0],             // Key block color
     "keyEmissive": [0.3, 0.25, 0.0],           // Key glow effect

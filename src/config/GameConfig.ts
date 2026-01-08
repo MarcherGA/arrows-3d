@@ -130,7 +130,7 @@ export const BLOCK_CONFIG = {
   /** Arrow offset from block face */
   ARROW_FACE_OFFSET: 0.01,
   /** Model path for block mesh */
-  MODEL_PATH: "/models/beveled-cube.glb",
+  MODEL_PATH: "/assets/common/models/beveled-cube.glb",
   /** Model name within GLB file */
   MODEL_NAME: "BeveledCube",
 } as const;
@@ -166,10 +166,10 @@ export const AUDIO_CONFIG = {
 
   /** Sound file paths */
   SOUNDS: {
-    BLOCK_CLICKED: "/sounds/block-clicked.ogg",
-    BLOCK_BLOCKED: "/sounds/block-blocked.ogg",
-    LEVEL_COMPLETE: "/sounds/level-complete.ogg",
-    BACKGROUND_MUSIC: "/sounds/background-music.ogg",
+    BLOCK_CLICKED: "/assets/common/sounds/block-moved.ogg",
+    BLOCK_BLOCKED: "/assets/common/sounds/block-blocked.ogg",
+    LEVEL_COMPLETE: "/assets/common/sounds/win-sound.ogg",
+    BACKGROUND_MUSIC: "/assets/common/sounds/background-music.ogg",
   },
 } as const;
 
