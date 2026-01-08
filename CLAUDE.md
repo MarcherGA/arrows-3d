@@ -404,69 +404,187 @@ Respond with PASS or FAIL and specific reasons.
 
 ## Color Palette Extraction
 
-### Extraction Algorithm
+### Vision-Based Extraction (Recommended)
 
-After generating visual assets, extract colors to create `palette.json`:
+**Instead of blind pixel sampling, use Claude's vision API for intelligent color extraction.**
 
-1. **Sample block texture:** Extract 100 random pixel colors
-2. **Sample lock overlay:** Extract 50 pixel colors for accents
-3. **Calculate base colors:** Average block texture samples for base palette
-4. **Find brightest emissive:** Select brightest + most saturated color for key block glow
+The key insight: Claude can understand which colors are aesthetically important and make context-aware decisions about palette generation.
 
-### Brightest Emissive Selection (CRITICAL)
+### Extraction Workflow
 
-The key block is the visual goal - it MUST pop. Use this algorithm:
+After generating visual assets, use Claude's vision to analyze and extract colors:
+
+#### Step 1: Analyze Block Texture for Base Palette
 
 ```typescript
-// Find the BRIGHTEST and most SATURATED color for maximum visual impact
-function findBrightestEmissive(samples: RGB[]): RGB {
-  return samples.reduce((brightest, color) => {
-    const brightnessCurrent = (color.r + color.g + color.b) / 3;
-    const brightnessBest = (brightest.r + brightest.g + brightest.b) / 3;
+const blockAnalysis = await claudeVision({
+  image: blockTextureBuffer,
+  prompt: `
+    Analyze this seamless texture for a "${themeName}" themed game.
+    Theme description: ${themeDescription}
 
-    const saturationCurrent = getSaturation(color);
-    const saturationBest = getSaturation(brightest);
+    Extract the color palette that would work best for:
+    1. Block default color (most representative base color)
+    2. Background scene color (darkest, atmospheric tone)
+    3. Arrow indicator color (contrasting, visible on blocks)
+    4. Locked block color (desaturated, muted variant)
 
-    // Score = 50% brightness + 50% saturation
-    const scoreCurrent = brightnessCurrent * 0.5 + saturationCurrent * 255 * 0.5;
-    const scoreBest = brightnessBest * 0.5 + saturationBest * 255 * 0.5;
+    Consider the overall aesthetic and ensure colors are harmonious.
 
-    return scoreCurrent > scoreBest ? color : brightest;
-  });
-}
-
-function getSaturation(rgb: RGB): number {
-  const max = Math.max(rgb.r, rgb.g, rgb.b);
-  const min = Math.min(rgb.r, rgb.g, rgb.b);
-  return max === 0 ? 0 : (max - min) / max;
-}
+    Return RGB values (0-255) as JSON:
+    {
+      "blockDefault": [r, g, b],
+      "background": [r, g, b, a],
+      "arrowColor": [r, g, b],
+      "lockedColor": [r, g, b]
+    }
+  `
+});
 ```
 
-### Palette Generation
+#### Step 2: Analyze Lock Overlay for Emissive Color
 
-Generate `palette.json` with these mappings:
+**CRITICAL:** The key block must POP visually - this is the player's goal!
 
 ```typescript
-{
-  "babylon": {
-    "blockDefault": averageColor(blockTextureSamples),
-    "arrowColor": adjustBrightness(blockDefault, 0.8),
-    "background": extractDarkestTone(blockTextureSamples),
-    "keyColor": brightestColor,              // Maximum visibility
-    "keyEmissive": boostSaturation(brightestColor, 1.5),  // Extra glow!
-    "lockedColor": desaturate(blockDefault, 0.5)
+const accentAnalysis = await claudeVision({
+  image: lockOverlayBuffer,
+  prompt: `
+    Analyze this lock overlay icon for a "${themeName}" themed game.
+
+    Find the single BRIGHTEST, most SATURATED, most VISUALLY IMPACTFUL color.
+
+    This color will be used for:
+    - Key block color (the goal block players must reach)
+    - Emissive glow effect (needs maximum visual hierarchy and pop)
+
+    Choose the color that would create the strongest visual contrast and
+    immediately draw the player's eye.
+
+    Return the single best color as JSON:
+    {
+      "keyColor": [r, g, b],
+      "reasoning": "why this color creates maximum visual impact"
+    }
+  `
+});
+```
+
+**Why vision-based selection is better:**
+- ✅ Claude understands "visually impactful" better than brightness math
+- ✅ Considers context (e.g., neon blue pops on dark backgrounds)
+- ✅ Avoids artifacts (won't pick random bright pixel glitches)
+- ✅ Semantic understanding (knows what "glow" colors look like)
+
+#### Step 3: Generate CSS Palette
+
+```typescript
+const cssColors = await claudeVision({
+  images: [blockTextureBuffer, lockOverlayBuffer],
+  prompt: `
+    Based on these "${themeName}" themed game assets, suggest 7 CSS hex colors for UI elements:
+
+    1. headerBg - Header background (should complement theme)
+    2. currencyContainer - Currency display background (slightly darker variant)
+    3. bgBlue - Primary UI accent color
+    4. darkBlue - Dark UI variant
+    5. gold - Highlight/currency color (should stand out)
+    6. green - Success/win color (positive feedback)
+    7. greenDark - Dark success variant
+
+    Colors must:
+    - Be harmonious with the ${themeName} aesthetic
+    - Ensure good UI readability (sufficient contrast)
+    - Create a cohesive visual experience
+
+    Return as JSON:
+    {
+      "headerBg": "#hex",
+      "currencyContainer": "#hex",
+      "bgBlue": "#hex",
+      "darkBlue": "#hex",
+      "gold": "#hex",
+      "green": "#hex",
+      "greenDark": "#hex"
+    }
+  `
+});
+```
+
+#### Step 4: Combine into palette.json
+
+```typescript
+function normalize(rgb: number[]): number[] {
+  return rgb.map(v => v / 255); // Convert 0-255 to 0-1 for Babylon.js
+}
+
+function boostSaturation(rgb: number[], factor: number): number[] {
+  // Boost saturation by 1.5x for extra glow effect
+  // (Simple implementation: move towards pure hue)
+  return rgb.map(v => Math.min(255, v * factor));
+}
+
+const palette: ThemePalette = {
+  name: themeName,
+  version: "1.0.0",
+  babylon: {
+    blockDefault: normalize(blockAnalysis.blockDefault),
+    arrowColor: normalize(blockAnalysis.arrowColor),
+    background: normalize(blockAnalysis.background),
+    keyColor: normalize(accentAnalysis.keyColor),
+    keyEmissive: normalize(boostSaturation(accentAnalysis.keyColor, 1.5)),
+    lockedColor: normalize(blockAnalysis.lockedColor),
   },
-  "css": {
-    "headerBg": blockDefault,
-    "currencyContainer": darken(blockDefault, 0.7),
-    "bgBlue": blockDefault,
-    "darkBlue": darken(blockDefault, 0.6),
-    "gold": brightestColor,                  // Use as accent
-    "green": adjustHue(brightestColor, 120), // Shift hue for variety
-    "greenDark": darken(adjustHue(brightestColor, 120), 0.7)
-  }
+  css: cssColors
+};
+
+// Save to file
+await writeFile(
+  `public/assets/${themeName}/palette.json`,
+  JSON.stringify(palette, null, 2)
+);
+```
+
+### Why Vision-Based Extraction is Superior
+
+**Traditional Pixel Sampling Problems:**
+- ❌ Blind to context (treats all pixels equally)
+- ❌ Poor gradient handling (averages to muddy colors)
+- ❌ Can't understand aesthetic intent
+- ❌ Complex code (RGB→HSL conversion, saturation math, etc.)
+- ❌ Edge cases (artifacts, seams, compression noise)
+
+**Vision-Based Advantages:**
+- ✅ **Semantic understanding**: Knows which colors are "important"
+- ✅ **Context-aware**: Understands visual hierarchy
+- ✅ **Theme coherence**: Ensures extracted colors match intended aesthetic
+- ✅ **Gradient intelligence**: Doesn't just average pixels
+- ✅ **Simpler implementation**: Just prompt engineering
+- ✅ **Better results**: Aesthetically-informed decisions
+
+**Example Vision Output:**
+```json
+{
+  "keyColor": [0, 217, 255],
+  "reasoning": "This electric blue creates maximum visual impact against
+               the dark metallic background. It's the brightest, most
+               saturated color in the lock overlay and will create a
+               stunning emissive glow effect that immediately draws
+               the player's attention to the goal block."
 }
 ```
+
+### Fallback: Pixel Sampling (If Vision Fails)
+
+If vision-based extraction fails for any reason, fall back to simple averaging:
+
+```typescript
+// Sample 100 random pixels, average RGB values
+const samples = await sampleImageColors(blockTextureBuffer, 100);
+const avgColor = averageColors(samples);
+```
+
+But vision-based extraction should be the primary approach.
 
 ---
 

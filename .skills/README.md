@@ -127,15 +127,31 @@ if (critique.includes('FAIL')) {
 
 ### Color Extraction
 
-Automatic palette.json generation:
+**Vision-Based Intelligent Extraction:**
 
-1. Sample 100 pixels from block texture → base colors
-2. Sample 50 pixels from lock overlay → accent colors
-3. Find **brightest + most saturated** → key block emissive
-4. Generate derived colors (CSS variants)
-5. Save palette.json
+Instead of blind pixel sampling, use Claude's vision API for aesthetically-informed color decisions:
 
-**Why brightest emissive:** Key block is the goal - must POP visually!
+1. **Analyze block texture** → Claude extracts base colors (blockDefault, background, arrowColor, lockedColor)
+2. **Analyze lock overlay** → Claude finds the BRIGHTEST, most VISUALLY IMPACTFUL color for key block emissive
+3. **Generate CSS palette** → Claude suggests 7 harmonious UI colors
+4. **Combine into palette.json** → Normalized Babylon.js values + CSS hex colors
+
+**Why vision-based is superior:**
+- ✅ Semantic understanding (knows what "pop" means aesthetically)
+- ✅ Context-aware (understands visual hierarchy and contrast)
+- ✅ Avoids artifacts (won't pick random glitch pixels)
+- ✅ Simpler code (no HSL math, saturation scoring, etc.)
+- ✅ Better results (aesthetically-informed vs blind math)
+
+**Example vision output:**
+```json
+{
+  "keyColor": [0, 217, 255],
+  "reasoning": "Electric blue creates maximum visual impact against
+               dark background - brightest, most saturated color
+               perfect for emissive glow effect"
+}
+```
 
 ### Post-Processing Pipeline
 

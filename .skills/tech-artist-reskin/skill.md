@@ -252,69 +252,138 @@ All assets passed vision critique.
 
 ### Phase 3: Color Extraction (1 minute)
 
-**Algorithm:**
+**Vision-Based Intelligent Extraction:**
+
+Instead of blind pixel sampling, use Claude's vision API to make aesthetically-informed color decisions.
+
+**Step 3.1: Analyze Block Texture for Base Palette**
 
 ```typescript
-async function extractColorsForPalette(
-  blockTextureBuffer: Buffer,
-  lockOverlayBuffer: Buffer,
-  themeName: string
-): Promise<ThemePalette> {
+const blockAnalysis = await claudeVision({
+  image: blockTextureBuffer,
+  prompt: `
+    Analyze this seamless texture for a "${themeName}" themed game.
+    Theme description: ${themeDescription}
 
-  // 1. Sample block texture (100 random pixels)
-  const blockSamples = await sampleImageColors(blockTextureBuffer, 100);
-  const avgBlockColor = averageColors(blockSamples);
+    Extract the color palette that would work best for:
+    1. Block default color (most representative base color)
+    2. Background scene color (darkest, atmospheric tone)
+    3. Arrow indicator color (contrasting, visible on blocks)
+    4. Locked block color (desaturated, muted variant)
 
-  // 2. Sample lock overlay for accent colors (50 pixels)
-  const lockSamples = await sampleImageColors(lockOverlayBuffer, 50);
+    Consider the overall aesthetic and ensure colors are harmonious.
 
-  // 3. Find BRIGHTEST and most SATURATED color (for key block glow)
-  const brightestColor = lockSamples.reduce((brightest, color) => {
-    const brightnessCurrent = (color.r + color.g + color.b) / 3;
-    const brightnessBest = (brightest.r + brightest.g + brightest.b) / 3;
+    Return RGB values (0-255) as JSON:
+    {
+      "blockDefault": [r, g, b],
+      "background": [r, g, b, a],
+      "arrowColor": [r, g, b],
+      "lockedColor": [r, g, b]
+    }
+  `
+});
+```
 
-    const saturationCurrent = getSaturation(color);
-    const saturationBest = getSaturation(brightest);
+**Step 3.2: Analyze Lock Overlay for Emissive Color**
 
-    // Score = 50% brightness + 50% saturation
-    const scoreCurrent = brightnessCurrent * 0.5 + saturationCurrent * 255 * 0.5;
-    const scoreBest = brightnessBest * 0.5 + saturationBest * 255 * 0.5;
+**CRITICAL:** The key block must POP - this is the visual goal!
 
-    return scoreCurrent > scoreBest ? color : brightest;
-  });
+```typescript
+const accentAnalysis = await claudeVision({
+  image: lockOverlayBuffer,
+  prompt: `
+    Analyze this lock overlay icon for a "${themeName}" themed game.
 
-  // 4. Generate palette.json
-  return {
-    name: themeName,
-    version: "1.0.0",
-    babylon: {
-      blockDefault: rgbToArray(avgBlockColor),
-      arrowColor: rgbToArray(adjustBrightness(avgBlockColor, 0.8)),
-      background: rgbToArray4(extractBackgroundColor(blockSamples)),
-      keyColor: rgbToArray(brightestColor),  // Brightest for visibility
-      keyEmissive: rgbToArray(boostSaturation(brightestColor, 1.5)),  // Extra glow!
-      lockedColor: rgbToArray(desaturate(avgBlockColor, 0.5)),
-    },
-    css: {
-      headerBg: rgbToHex(avgBlockColor),
-      currencyContainer: rgbToHex(adjustBrightness(avgBlockColor, 0.7)),
-      bgBlue: rgbToHex(avgBlockColor),
-      darkBlue: rgbToHex(adjustBrightness(avgBlockColor, 0.6)),
-      gold: rgbToHex(brightestColor),  // Use brightest as accent
-      green: rgbToHex(adjustHue(brightestColor, 120)),
-      greenDark: rgbToHex(adjustBrightness(adjustHue(brightestColor, 120), 0.7)),
-    },
-  };
-}
+    Find the single BRIGHTEST, most SATURATED, most VISUALLY IMPACTFUL color.
+
+    This color will be used for:
+    - Key block color (the goal block players must reach)
+    - Emissive glow effect (needs maximum visual hierarchy and pop)
+
+    Choose the color that would create the strongest visual contrast and
+    immediately draw the player's eye.
+
+    Return the single best color as JSON:
+    {
+      "keyColor": [r, g, b],
+      "reasoning": "why this color creates maximum visual impact"
+    }
+  `
+});
+```
+
+**Why vision-based is better:**
+- ✅ Semantic understanding (knows what "pop" means)
+- ✅ Context-aware (electric blue pops on dark backgrounds)
+- ✅ Avoids artifacts (won't pick glitch pixels)
+- ✅ Simpler code (no HSL math)
+
+**Step 3.3: Generate CSS Palette**
+
+```typescript
+const cssColors = await claudeVision({
+  images: [blockTextureBuffer, lockOverlayBuffer],
+  prompt: `
+    Based on these "${themeName}" themed assets, suggest 7 CSS hex colors:
+
+    1. headerBg - Header background
+    2. currencyContainer - Currency display background
+    3. bgBlue - Primary UI accent
+    4. darkBlue - Dark UI variant
+    5. gold - Highlight/currency color
+    6. green - Success/win color
+    7. greenDark - Dark success variant
+
+    Ensure harmony with ${themeName} aesthetic and good UI readability.
+
+    Return as JSON:
+    {
+      "headerBg": "#hex",
+      "currencyContainer": "#hex",
+      "bgBlue": "#hex",
+      "darkBlue": "#hex",
+      "gold": "#hex",
+      "green": "#hex",
+      "greenDark": "#hex"
+    }
+  `
+});
+```
+
+**Step 3.4: Combine into palette.json**
+
+```typescript
+const palette = {
+  name: themeName,
+  version: "1.0.0",
+  babylon: {
+    blockDefault: normalize(blockAnalysis.blockDefault),
+    arrowColor: normalize(blockAnalysis.arrowColor),
+    background: normalize(blockAnalysis.background),
+    keyColor: normalize(accentAnalysis.keyColor),
+    keyEmissive: normalize(boostSaturation(accentAnalysis.keyColor, 1.5)),
+    lockedColor: normalize(blockAnalysis.lockedColor),
+  },
+  css: cssColors
+};
 ```
 
 **Output:**
 ```
-✅ Color Palette Extracted
+✅ Color Palette Extracted (Vision-Based)
 
-Sampled 100 pixels from block texture
-Sampled 50 pixels from lock overlay
-Brightest emissive: rgb(0, 217, 255) - Electric blue
+Block analysis complete:
+- Base color: rgb(28, 35, 58) - Dark metallic
+- Arrow color: rgb(74, 180, 255) - Bright cyan
+- Background: rgb(10, 14, 39) - Deep blue-black
+- Locked color: rgb(45, 45, 50) - Muted grey
+
+Accent analysis complete:
+- Key emissive: rgb(0, 217, 255) - Electric blue
+- Reasoning: "Creates maximum visual impact against dark background,
+              brightest/most saturated color, perfect for glow effect"
+
+CSS palette generated with theme harmony
 
 Palette saved: temp/cyberpunk/palette.json
 ```
