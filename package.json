@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^8.43.0",
-    "@babylonjs/loaders": "^8.43.0"
+    "@babylonjs/loaders": "^8.43.0",
+    "sharp": "^0.34.5"
   }
 }
