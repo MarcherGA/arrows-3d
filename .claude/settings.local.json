@@ -5,7 +5,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(dir /b \"c:\\\\Projects\\\\arrows-3d\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npm install:*)",
+      "Bash(npm search:*)",
+      "Bash(cat:*)"
     ]
   }
 }
