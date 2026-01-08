@@ -2,6 +2,8 @@
 
 Fully automated game re-skinning orchestrator. Generates all visual assets for a new theme, extracts colors, integrates into the game, and validates the build.
 
+**Global skill:** Works with any project via `.asset-gen-config.json` configuration file.
+
 ## Usage
 
 ```
@@ -9,350 +11,105 @@ Fully automated game re-skinning orchestrator. Generates all visual assets for a
 ```
 
 **Parameters:**
-- `theme_name`: Theme identifier (e.g., "cyberpunk", "medieval", "spooky")
-- `theme_description`: Comprehensive description of the theme aesthetic and style
+- `theme_name`: Theme identifier (e.g., "cyberpunk", "medieval")
+- `theme_description`: Comprehensive theme aesthetic and style description
 
-**Example:**
-```
-/reskin cyberpunk "Futuristic cyberpunk aesthetic with neon accents, dark metallic surfaces, electric blue and hot pink colors, holographic elements, tech panels with circuit patterns, atmospheric city vibes"
-```
+## Workflow
 
-## What This Skill Does
+1. **Load Configuration** - Read `.asset-gen-config.json` for project settings
+2. **Initialization** - Validate inputs, create theme and temp folders
+3. **Asset Generation** - Generate all assets in configured order (hero asset first)
+4. **Color Extraction** - Vision-based intelligent palette extraction
+5. **Integration** - Save assets and palette to theme folder
+6. **Theme Switch** - Update project config file to use new theme
+7. **Build Validation** - Run build, check size, verify success
+8. **Success Report** - Summary with file sizes and next steps
 
-**End-to-end automated workflow:**
+## Configuration
 
-1. ✅ **Initialization** - Validate inputs, create theme folder
-2. 🎨 **Asset Generation** - Generate all 7 assets with quality validation
-3. 🎨 **Color Extraction** - Sample images and create palette.json
-4. 📦 **Integration** - Save assets to theme folder
-5. 🔄 **Theme Switch** - Update GameConfig.ts to use new theme
-6. 🏗️ **Build Validation** - Run build, check size, verify success
-7. 📊 **Success Report** - Summary with file sizes and next steps
+Uses `.asset-gen-config.json` from project root:
 
-**Total Time:** ~10-15 minutes for complete theme generation
-
-## Workflow Phases
-
-### Phase 1: Initialization (30 seconds)
-
-**Tasks:**
-1. Parse and validate theme name and description
-2. Create theme folder: `public/assets/{themeName}/`
-3. Create temp directory for generation: `temp/{themeName}/`
-4. Validate Replicate MCP is available
-5. Check Sharp library is installed
-
-**Validation:**
-- Theme name is alphanumeric (lowercase, hyphens ok)
-- Theme description is comprehensive (>50 characters)
-- Theme folder doesn't already exist (or confirm overwrite)
-- Required dependencies available
-
-**Output:**
-```
-✅ Initialization Complete
-Theme: cyberpunk
-Folder: public/assets/cyberpunk/
-Description: Futuristic cyberpunk aesthetic...
-Ready to generate 7 assets.
+```json
+{
+  "output": {
+    "themeFolder": "public/assets/{themeName}/",
+    "tempFolder": "temp/{themeName}/",
+    "configFile": "src/config/GameConfig.ts",
+    "configUpdatePattern": "CURRENT_THEME: '{themeName}'"
+  },
+  "workflow": {
+    "generationOrder": ["block-texture", "background", "lock-overlay", "arrow-icon", "currency-icon", "win-icon", "logo"],
+    "heroAsset": "block-texture"
+  },
+  "palette": {
+    "filename": "palette.json",
+    "visionBased": true,
+    "extractionStrategy": { /* vision prompts */ }
+  }
+}
 ```
 
----
+## Implementation
 
-### Phase 2: Asset Generation (8-12 minutes)
-
-**Critical:** Generate assets in specific order for style coherence
-
-#### Step 2.1: Generate Hero Asset (Block Texture) - FIRST
-
-**Why first:** This defines the theme's material and atmosphere
-
-```
-Asset: block-texture
-Model: black-forest-labs/flux-1.1-pro
-Dimensions: 512x512
-Format: JPEG
-Style Reference: NONE (text-only generation)
-```
-
-**Prompt:**
-```
-Create a seamless, tileable texture for a 3D cube surface.
-
-REQUIREMENTS (CRITICAL):
-- Perfectly seamless edges (wraps on cube faces without visible seams)
-- Suitable for {THEME_NAME} aesthetic
-- Visual interest but not overwhelming
-- Works well when repeated on multiple cube faces
-- Square format (512x512)
-
-STYLE: {THEME_DESCRIPTION}
-
-NEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges,
-asymmetric, directional lighting, perspective, organic patterns that don't tile
-```
-
-**Vision Critique:** Validate seamless tiling, theme match, quality
-
-**Output:** `temp/cyberpunk/block-texture.jpg`
-
----
-
-#### Step 2.2: Generate Background (WITH Style Reference)
-
-**Why style reference:** Ensures atmospheric coherence with block texture
-
-```
-Asset: background
-Model: black-forest-labs/flux-dev
-Dimensions: 1920x1080
-Format: JPEG
-Style Reference: block-texture.jpg (prompt_strength: 0.7)
-```
-
-**Prompt:**
-```
-Create an atmospheric background for a puzzle game interface.
-
-REQUIREMENTS (CRITICAL):
-- Non-distracting (suitable for UI overlay)
-- Blurred, gradient, or atmospheric (NOT detailed foreground)
-- Appropriate for {THEME_NAME} aesthetic
-- 16:9 aspect ratio (1920x1080)
-- Dark to medium tones
-
-STYLE: {THEME_DESCRIPTION}
-
-NEGATIVE PROMPT: sharp focus, detailed foreground, busy patterns, text,
-watermarks, UI elements, characters, centered objects
-```
-
-**Vision Critique:** Validate non-distracting, theme match, UI compatibility
-
-**Output:** `temp/cyberpunk/background.jpg`
-
----
-
-#### Step 2.3: Generate Lock Overlay (WITH Style Reference)
-
-**Why style reference:** Material style should match block texture
-
-```
-Asset: lock-overlay
-Model: black-forest-labs/flux-1.1-pro
-Dimensions: 512x512
-Format: PNG
-Style Reference: block-texture.jpg (prompt_strength: 0.7)
-```
-
-**Prompt:**
-```
-Create a lock/chain overlay icon for a puzzle game.
-
-REQUIREMENTS (CRITICAL):
-- Clear "locked" symbolism (padlock, chain, barrier, etc.)
-- Completely transparent background
-- Visible when overlaid on textured surfaces
-- Square format (512x512)
-- Bold design with good contrast
-
-STYLE: {THEME_DESCRIPTION}
-
-NEGATIVE PROMPT: background, solid fill, subtle details, text, watermarks,
-white edges, multiple locks, realistic photography
-```
-
-**Post-Processing:**
-1. Background removal (`cjwbw/rembg`)
-2. Alpha erosion (1px)
-3. PNG compression
-
-**Vision Critique:** Validate lock symbolism, transparency, visibility
-
-**Output:** `temp/cyberpunk/lock-overlay.png`
-
----
-
-#### Step 2.4: Generate Arrow Icon (Text-Only)
-
-**Why no style reference:** Icons need simplicity and clarity
-
-```
-Asset: arrow-icon
-Model: black-forest-labs/flux-schnell
-Dimensions: 256x256
-Format: PNG
-Style Reference: NONE (text-only for simplicity)
-```
-
-**Prompt:**
-```
-Create a simple, bold arrow icon pointing UPWARD for a puzzle game.
-
-REQUIREMENTS (CRITICAL):
-- Arrow points straight UP (↑ direction)
-- Completely transparent background
-- Simple, geometric design (readable at small sizes)
-- Bold and clear (high visibility)
-- Square format (256x256)
-
-STYLE: {THEME_DESCRIPTION}
-
-NEGATIVE PROMPT: complex details, thin lines, background, gradient backgrounds,
-white edges, multiple arrows, text, watermarks
-```
-
-**Post-Processing:**
-1. Background removal
-2. Alpha erosion (1px)
-3. PNG compression
-
-**Vision Critique:** Validate direction, transparency, readability
-
-**Output:** `temp/cyberpunk/arrow-icon.png`
-
----
-
-#### Step 2.5-2.7: Generate UI Icons (Text-Only)
-
-Generate in parallel for speed:
-- `currency-icon.png` (128x128)
-- `win-icon.png` (128x128)
-- `logo.png` (128x128)
-
-**Model:** `black-forest-labs/flux-schnell`
-**Style Reference:** NONE (text-only)
-
-**Prompts:** *(Customized per icon type, see CLAUDE.md)*
-
-**Post-Processing:** Same as arrow icon
-
-**Output:** `temp/cyberpunk/{icon}.png`
-
----
-
-**Phase 2 Summary:**
-```
-✅ Asset Generation Complete (7/7 assets)
-
-Generated:
-- block-texture.jpg (142KB) ✓
-- background.jpg (98KB) ✓
-- lock-overlay.png (48KB) ✓
-- arrow-icon.png (18KB) ✓
-- currency-icon.png (15KB) ✓
-- win-icon.png (12KB) ✓
-- logo.png (14KB) ✓
-
-Total Size: 347KB (within 400KB budget)
-All assets passed vision critique.
-```
-
----
-
-### Phase 3: Color Extraction (1 minute)
-
-**Vision-Based Intelligent Extraction:**
-
-Instead of blind pixel sampling, use Claude's vision API to make aesthetically-informed color decisions.
-
-**Step 3.1: Analyze Block Texture for Base Palette**
+### Phase 1: Initialization
 
 ```typescript
+const config = JSON.parse(await readFile('.asset-gen-config.json'));
+
+// Validate theme name/description
+// Create folders: config.output.themeFolder, config.output.tempFolder
+// Check dependencies: Replicate MCP, Sharp library
+```
+
+### Phase 2: Asset Generation
+
+```typescript
+const assetTypes = config.workflow.generationOrder;
+const heroAsset = config.workflow.heroAsset;
+
+// Generate hero asset first (defines theme material/atmosphere)
+await generateAsset(heroAsset, themeName, themeDescription);
+
+// Generate remaining assets (some with style reference to hero asset)
+for (const assetType of assetTypes.filter(a => a !== heroAsset)) {
+  await generateAsset(assetType, themeName, themeDescription);
+}
+```
+
+**Style Reference Strategy:**
+- Hero asset (e.g., block-texture): Text-only generation, no style reference
+- Background & overlays: Use hero asset as style reference (prompt_strength: 0.7)
+- Icons: Text-only generation (simplicity required)
+
+### Phase 3: Color Extraction (Vision-Based)
+
+```typescript
+// Analyze hero asset for base palette
 const blockAnalysis = await claudeVision({
   image: blockTextureBuffer,
-  prompt: `
-    Analyze this seamless texture for a "${themeName}" themed game.
-    Theme description: ${themeDescription}
-
-    Extract the color palette that would work best for:
-    1. Block default color (most representative base color)
-    2. Background scene color (darkest, atmospheric tone)
-    3. Arrow indicator color (contrasting, visible on blocks)
-    4. Locked block color (desaturated, muted variant)
-
-    Consider the overall aesthetic and ensure colors are harmonious.
-
-    Return RGB values (0-255) as JSON:
-    {
-      "blockDefault": [r, g, b],
-      "background": [r, g, b, a],
-      "arrowColor": [r, g, b],
-      "lockedColor": [r, g, b]
-    }
-  `
+  prompt: config.palette.extractionStrategy.blockTexture.prompt
+    .replace(/{themeName}/g, themeName)
+    .replace(/{themeDescription}/g, themeDescription)
 });
-```
+// Returns: { blockDefault, background, arrowColor, lockedColor }
 
-**Step 3.2: Analyze Lock Overlay for Emissive Color**
-
-**CRITICAL:** The key block must POP - this is the visual goal!
-
-```typescript
+// Analyze accent asset for emissive color
 const accentAnalysis = await claudeVision({
   image: lockOverlayBuffer,
-  prompt: `
-    Analyze this lock overlay icon for a "${themeName}" themed game.
-
-    Find the single BRIGHTEST, most SATURATED, most VISUALLY IMPACTFUL color.
-
-    This color will be used for:
-    - Key block color (the goal block players must reach)
-    - Emissive glow effect (needs maximum visual hierarchy and pop)
-
-    Choose the color that would create the strongest visual contrast and
-    immediately draw the player's eye.
-
-    Return the single best color as JSON:
-    {
-      "keyColor": [r, g, b],
-      "reasoning": "why this color creates maximum visual impact"
-    }
-  `
+  prompt: config.palette.extractionStrategy.lockOverlay.prompt
+    .replace(/{themeName}/g, themeName)
 });
-```
+// Returns: { keyColor, reasoning }
 
-**Why vision-based is better:**
-- ✅ Semantic understanding (knows what "pop" means)
-- ✅ Context-aware (electric blue pops on dark backgrounds)
-- ✅ Avoids artifacts (won't pick glitch pixels)
-- ✅ Simpler code (no HSL math)
-
-**Step 3.3: Generate CSS Palette**
-
-```typescript
+// Generate CSS palette
 const cssColors = await claudeVision({
   images: [blockTextureBuffer, lockOverlayBuffer],
-  prompt: `
-    Based on these "${themeName}" themed assets, suggest 7 CSS hex colors:
-
-    1. headerBg - Header background
-    2. currencyContainer - Currency display background
-    3. bgBlue - Primary UI accent
-    4. darkBlue - Dark UI variant
-    5. gold - Highlight/currency color
-    6. green - Success/win color
-    7. greenDark - Dark success variant
-
-    Ensure harmony with ${themeName} aesthetic and good UI readability.
-
-    Return as JSON:
-    {
-      "headerBg": "#hex",
-      "currencyContainer": "#hex",
-      "bgBlue": "#hex",
-      "darkBlue": "#hex",
-      "gold": "#hex",
-      "green": "#hex",
-      "greenDark": "#hex"
-    }
-  `
+  prompt: config.palette.extractionStrategy.cssColors.prompt
+    .replace(/{themeName}/g, themeName)
 });
-```
+// Returns: { headerBg, currencyContainer, bgBlue, darkBlue, gold, green, greenDark }
 
-**Step 3.4: Combine into palette.json**
-
-```typescript
+// Combine into palette.json
 const palette = {
   name: themeName,
   version: "1.0.0",
@@ -362,220 +119,125 @@ const palette = {
     background: normalize(blockAnalysis.background),
     keyColor: normalize(accentAnalysis.keyColor),
     keyEmissive: normalize(boostSaturation(accentAnalysis.keyColor, 1.5)),
-    lockedColor: normalize(blockAnalysis.lockedColor),
+    lockedColor: normalize(blockAnalysis.lockedColor)
   },
   css: cssColors
 };
+
+await writeFile(`${tempFolder}/palette.json`, JSON.stringify(palette, null, 2));
 ```
 
-**Output:**
-```
-✅ Color Palette Extracted (Vision-Based)
+**Why vision-based extraction:**
+- ✅ Semantic understanding of aesthetically important colors
+- ✅ Context-aware decisions (neon blue pops on dark backgrounds)
+- ✅ Avoids artifacts and edge cases
+- ✅ Simpler implementation than pixel sampling algorithms
 
-Block analysis complete:
-- Base color: rgb(28, 35, 58) - Dark metallic
-- Arrow color: rgb(74, 180, 255) - Bright cyan
-- Background: rgb(10, 14, 39) - Deep blue-black
-- Locked color: rgb(45, 45, 50) - Muted grey
+### Phase 4: Integration
 
-Accent analysis complete:
-- Key emissive: rgb(0, 217, 255) - Electric blue
-- Reasoning: "Creates maximum visual impact against dark background,
-              brightest/most saturated color, perfect for glow effect"
+```typescript
+// Copy all assets from temp to theme folder
+const themeFolder = config.output.themeFolder.replace('{themeName}', themeName);
+await copyDirectory(tempFolder, themeFolder);
 
-CSS palette generated with theme harmony
-
-Palette saved: temp/cyberpunk/palette.json
-```
-
----
-
-### Phase 4: Integration (1 minute)
-
-**Tasks:**
-
-1. **Copy all assets to theme folder**
-   ```bash
-   cp temp/cyberpunk/* public/assets/cyberpunk/
-   ```
-
-2. **Verify all 8 files present**
-   - block-texture.jpg ✓
-   - background.jpg ✓
-   - lock-overlay.png ✓
-   - arrow-icon.png ✓
-   - currency-icon.png ✓
-   - win-icon.png ✓
-   - logo.png ✓
-   - palette.json ✓
-
-3. **Update GameConfig.ts**
-   ```typescript
-   // Change line ~3
-   CURRENT_THEME: 'cyberpunk',  // Was: 'wood'
-   ```
-
-**Output:**
-```
-✅ Integration Complete
-
-Assets copied to: public/assets/cyberpunk/
-Theme switched to: cyberpunk
-GameConfig.ts updated: src/config/GameConfig.ts:3
+// Update project config file
+const configFile = config.output.configFile;
+const pattern = config.output.configUpdatePattern.replace('{themeName}', themeName);
+await updateConfigFile(configFile, pattern);
 ```
 
----
+### Phase 5: Build Validation
 
-### Phase 5: Build Validation (2 minutes)
+```typescript
+// Run build command (project-specific)
+await runBuildCommand();
 
-**Tasks:**
+// Validate
+const bundleSize = await getBundleSize('dist/');
+const maxSize = config.constraints.totalBundleSize;
 
-1. **Run development server test**
-   ```bash
-   npm run dev &
-   # Wait 5s for server start
-   # Check no errors in console
-   # Kill server
-   ```
+if (bundleSize > maxSize) {
+  // Compress assets more aggressively or reduce dimensions
+  // Retry build
+}
 
-2. **Run production build**
-   ```bash
-   npm run build
-   ```
+// Check for errors
+```
 
-3. **Check bundle size**
-   ```bash
-   du -sh dist/
-   # Must be <5MB
-   ```
+### Phase 6: Success Report
 
-4. **Validate dist/ contents**
-   - index.html exists ✓
-   - Assets inlined (for single-file deployment) ✓
-   - No errors in build output ✓
+```typescript
+// Generate report with:
+// - Asset list with sizes
+// - Color palette summary
+// - Vision critique results
+// - Build validation status
+// - Next steps for testing/deployment
+```
 
-**If build fails:**
-- Rollback GameConfig.ts to previous theme
+## Color Palette Schema
+
+```json
+{
+  "name": "theme-name",
+  "version": "1.0.0",
+  "babylon": {
+    "blockDefault": [r, g, b],        // RGB normalized 0-1
+    "arrowColor": [r, g, b],
+    "background": [r, g, b, a],       // RGBA normalized 0-1
+    "keyColor": [r, g, b],
+    "keyEmissive": [r, g, b],
+    "lockedColor": [r, g, b]
+  },
+  "css": {
+    "headerBg": "#hex",
+    "currencyContainer": "#hex",
+    "bgBlue": "#hex",
+    "darkBlue": "#hex",
+    "gold": "#hex",
+    "green": "#hex",
+    "greenDark": "#hex"
+  }
+}
+```
+
+## Dependencies
+
+- Replicate MCP server (`.mcp.json`)
+- Sharp library for image processing
+- Claude vision API
+- Project-specific build tools
+
+## Error Handling
+
+### Build Fails
+- Rollback theme switch in config file
 - Keep generated assets in temp/ for debugging
-- Report error and recommendations
+- Report error details
 
-**If bundle size >5MB:**
-- Compress assets (reduce JPEG quality to 70%)
+### Bundle Size Exceeds Limit
+- Compress assets (reduce JPEG quality 85% → 70%)
 - Retry build
 - If still over, recommend dimension reduction
 
-**Output:**
-```
-✅ Build Validation Complete
+### Asset Generation Fails
+- Continue with remaining assets
+- Flag failed assets for manual generation
+- Complete partial theme integration
 
-Build status: SUCCESS
-Bundle size: 732KB (well under 5MB limit)
-Dev server: No errors
-Assets inlined: Yes (single-file ready)
+## Setup for New Project
 
-Build output: dist/index.html
-```
-
----
-
-### Phase 6: Success Report (10 seconds)
-
-**Generate comprehensive report:**
-
-```markdown
-# Cyberpunk Theme Generation - SUCCESS ✅
-
-## Summary
-Theme: **cyberpunk**
-Description: Futuristic cyberpunk aesthetic with neon accents...
-Total Time: 12 minutes 34 seconds
-
-## Assets Generated (7/7)
-
-| Asset | Size | Format | Status |
-|-------|------|--------|--------|
-| block-texture.jpg | 142KB | JPEG 512x512 | ✅ PASS |
-| background.jpg | 98KB | JPEG 1920x1080 | ✅ PASS |
-| lock-overlay.png | 48KB | PNG 512x512 | ✅ PASS |
-| arrow-icon.png | 18KB | PNG 256x256 | ✅ PASS |
-| currency-icon.png | 15KB | PNG 128x128 | ✅ PASS |
-| win-icon.png | 12KB | PNG 128x128 | ✅ PASS |
-| logo.png | 14KB | PNG 128x128 | ✅ PASS |
-| **Total** | **347KB** | | **< 400KB ✓** |
-
-## Color Palette
-
-**Key Colors:**
-- Brightest Emissive: rgb(0, 217, 255) - Electric Blue
-- Block Base: rgb(28, 35, 58) - Dark Metallic
-- Background: rgb(10, 14, 39) - Deep Blue-Black
-
-**Palette:** `public/assets/cyberpunk/palette.json`
-
-## Vision Critique Summary
-
-All assets passed visual quality validation:
-- Block texture: Seamless tiling confirmed ✓
-- Arrow icon: Clear upward direction, transparent ✓
-- Background: Non-distracting, suitable for UI ✓
-- Lock overlay: Clear symbolism, good contrast ✓
-- UI icons: Simple, readable, theme-consistent ✓
-
-## Build Validation
-
-- ✅ Build: SUCCESS
-- ✅ Bundle size: 732KB (< 5MB target)
-- ✅ Dev server: No errors
-- ✅ Single-file ready: Yes
-
-## Integration Status
-
-- ✅ Assets copied to: `public/assets/cyberpunk/`
-- ✅ Theme switched: `CURRENT_THEME = 'cyberpunk'`
-- ✅ GameConfig updated: `src/config/GameConfig.ts:3`
-
-## Next Steps
-
-1. **Test the game:**
-   ```bash
-   npm run dev
-   # Open http://localhost:5173
-   ```
-
-2. **Preview build:**
-   ```bash
-   npm run preview
-   ```
-
-3. **Deploy single-file playable:**
-   - Install: `npm install --save-dev vite-plugin-singlefile`
-   - Configure vite.config.ts (see CLAUDE.md)
-   - Build: `npm run build`
-   - Output: `dist/index.html` (<5MB)
-
-4. **Switch themes anytime:**
-   ```typescript
-   // src/config/GameConfig.ts
-   CURRENT_THEME: 'wood',     // Back to original
-   CURRENT_THEME: 'cyberpunk', // New theme
-   ```
-
-## Iteration Notes
-
-**What Worked Well:**
-- Hero asset strategy ensured perfect style coherence
-- Vision critique caught 0 quality issues (all passed first try)
-- Brightest emissive selection created stunning key block glow
-- All assets within size budget
-
-**Challenges Encountered:**
-*(None - generation succeeded on all assets)*
-
-**Future Improvements:**
-- Consider adding music/SFX generation
-- Explore 3D model variations
-- Add theme preview thumbnails
+1. Copy `.asset-gen-config.json` template to project root
+2. Customize configuration:
+   - Define all asset types needed
+   - Set output paths for your project structure
+   - Configure theme config file update pattern
+   - Define palette structure for your engine/framework
+   - Set build constraints and validation rules
+3. Ensure dependencies installed
+4. Test: `/reskin test "test theme for validation"`
 
 ---
 
-**Theme Ready for Production** ✅
+**Version:** 2.0.0 (Project-Agnostic)
+**Updated:** 2026-01-08

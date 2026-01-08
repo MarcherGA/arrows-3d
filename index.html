@@ -366,10 +366,10 @@
 
       .btn {
         background: linear-gradient(to bottom, var(--green) 0%, var(--green-dark) 100%);
-        border: 2px solid #a8e03f;
+        border: 2px solid var(--green);
         border-radius: 12px;
         cursor: pointer;
-        box-shadow: 0 4px 0px #4a7201, 0 6px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 0px var(--green-dark), 0 6px 10px rgba(0,0,0,0.3);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -378,7 +378,7 @@
 
       .btn:active {
         transform: translateY(2px);
-        box-shadow: 0 2px 0px #4a7201;
+        box-shadow: 0 2px 0px var(--green-dark);
       }
 
       .btn-home {
@@ -531,7 +531,7 @@
           const assetBasePath = `/assets/${THEME_CONFIG.CURRENT_THEME}`;
           document.querySelectorAll('img[src*="/icons/"]').forEach(img => {
             const filename = img.src.split('/').pop();
-            const newSrc = `${assetBasePath}/${filename.replace('dollars.png', 'currency-icon.png').replace('piggy-bank.png', 'win-icon.png')}`;
+            const newSrc = `${assetBasePath}/${filename.replace('dollars.png', 'currency-icon.png').replace('piggy-bank.png', 'piggy-bank.png')}`;
             img.src = newSrc;
           });
 

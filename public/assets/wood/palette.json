@@ -4,6 +4,7 @@
   "babylon": {
     "blockDefault": [1.0, 1.0, 1.0],
     "arrowColor": [0.459, 0.176, 0.016],
+    "keyArrowColor": [0.1, 0.1, 0.1],
     "background": [0.2, 0.3, 0.4, 1.0],
     "keyColor": [1.0, 0.843, 0.0],
     "keyEmissive": [0.3, 0.25, 0.0],

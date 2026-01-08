@@ -1,5 +1,5 @@
 import { ConfettiManager } from './ConfettiManager';
-import { GameConfig } from '../config/GameConfig';
+import { GameConfig, getAssetPath } from '../config/GameConfig';
 
 /**
  * Manages UI elements like level number and currency display
@@ -93,7 +93,7 @@ export class UIManager {
     const iconDiv = document.createElement('div');
     iconDiv.className = 'currency-gain-icon';
     const img = document.createElement('img');
-    img.src = GameConfig.UI.CURRENCY_GAIN_ICON;
+    img.src = getAssetPath(GameConfig.UI.CURRENCY_GAIN_ICON);
     img.alt = 'Currency';
     iconDiv.appendChild(img);
 

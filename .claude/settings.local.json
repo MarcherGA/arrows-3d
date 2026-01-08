@@ -9,7 +9,14 @@
       "Bash(findstr:*)",
       "Bash(npm install:*)",
       "Bash(npm search:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(powershell -Command \"\\(Get-Content ''.skills\\\\tech-artist-generate-asset\\\\skill.md''\\).Count; \\(Get-Content ''.skills\\\\tech-artist-reskin\\\\skill.md''\\).Count\")",
+      "Bash(mkdir:*)",
+      "Bash(curl:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "replicate"
+  ]
 }

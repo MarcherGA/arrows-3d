@@ -1,0 +1,397 @@
+# Tech Artist: Generate Asset
+
+Generate a single high-quality game asset using AI image generation with automatic quality validation and iteration.
+
+**This is a global skill that works with any project.** Asset specifications are read from `.asset-gen-config.json` in the project root.
+
+## Usage
+
+```
+/generate-asset <asset_type> <theme_name> <theme_description>
+```
+
+**Parameters:**
+- `asset_type`: Type of asset to generate (defined in `.asset-gen-config.json`)
+- `theme_name`: Theme identifier (e.g., "cyberpunk", "medieval", "spooky")
+- `theme_description`: Detailed description of the theme aesthetic
+
+**Example:**
+```
+/generate-asset block-texture cyberpunk "metallic tech panels with neon circuit lines, dark blue metallic with glowing cyan grid"
+```
+
+## What This Skill Does
+
+1. **Load Configuration**: Reads `.asset-gen-config.json` from project root
+2. **Prompt Generation**: Creates optimized prompts based on asset type and theme
+3. **AI Generation**: Uses Replicate Flux models to generate high-quality images
+4. **Vision Critique**: Claude visually inspects the generated asset for quality issues
+5. **Iteration**: Automatically retries if quality is poor (max iterations from config)
+6. **Post-Processing**: Applies background removal, alpha erosion, and compression
+7. **Validation**: Checks file size, format, dimensions, and quality
+8. **Save**: Outputs the final asset to the configured location
+
+## Configuration File
+
+This skill requires a `.asset-gen-config.json` file in the project root. This file defines:
+- Asset types and their specifications
+- Dimensions, formats, size targets
+- AI models to use for each asset type
+- Prompt templates and critique prompts
+- Post-processing steps
+- Output paths and folder structure
+
+**Example configuration structure:**
+```json
+{
+  "assetTypes": {
+    "block-texture": {
+      "filename": "block-texture.jpg",
+      "dimensions": { "width": 512, "height": 512 },
+      "format": "JPEG",
+      "sizeTarget": "150KB",
+      "model": "black-forest-labs/flux-1.1-pro",
+      "critical": "SEAMLESS TILEABLE",
+      "promptTemplate": "...",
+      "critiquePrompt": "...",
+      "postProcessing": ["JPEG compression"],
+      "styleReference": null
+    }
+  },
+  "output": {
+    "themeFolder": "public/assets/{themeName}/",
+    "tempFolder": "temp/{themeName}/"
+  }
+}
+```
+
+See the project's `.asset-gen-config.json` for the complete specification.
+
+## Workflow
+
+### Step 0: Load Configuration
+
+```typescript
+// Read project-specific asset configuration
+const config = JSON.parse(await readFile('.asset-gen-config.json'));
+const assetSpec = config.assetTypes[assetType];
+
+if (!assetSpec) {
+  throw new Error(`Asset type "${assetType}" not found in .asset-gen-config.json`);
+}
+```
+
+### Step 1: Generate Prompt Template
+
+Use the `promptTemplate` from the asset specification:
+
+```typescript
+const prompt = assetSpec.promptTemplate
+  .replace(/{THEME_NAME}/g, themeName)
+  .replace(/{THEME_DESCRIPTION}/g, themeDescription);
+```
+
+**Example: Block Texture Template (from config):**
+```
+Create a seamless, tileable texture for a 3D cube surface.
+
+REQUIREMENTS (CRITICAL):
+- Perfectly seamless edges (wraps on cube faces without visible seams)
+- Suitable for {THEME_NAME} aesthetic
+- Visual interest but not overwhelming
+- Works well when repeated on multiple cube faces
+
+STYLE: {THEME_DESCRIPTION}
+
+NEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges,
+asymmetric, directional lighting, perspective, organic patterns that don't tile
+```
+
+All prompt templates are defined in `.asset-gen-config.json`.
+
+### Step 2: Generate Image with Replicate
+
+Use the model specified in the asset configuration:
+
+```typescript
+const modelName = assetSpec.model;
+const dimensions = assetSpec.dimensions;
+const format = assetSpec.format.toLowerCase();
+
+// Build input parameters
+const input = {
+  prompt: generatedPrompt,
+  width: dimensions.width,
+  height: dimensions.height,
+  num_outputs: 1,
+  output_format: format === 'jpeg' ? 'jpg' : format,
+};
+
+// Add quality for JPEG
+if (format === 'jpeg') {
+  input.output_quality = 85;
+}
+
+// Add style reference if configured
+if (assetSpec.styleReference && heroAssetUrl) {
+  input.image_prompt = heroAssetUrl;
+  input.prompt_strength = assetSpec.styleReference.promptStrength;
+}
+
+// Call Replicate MCP
+const prediction = await replicatePredict(modelName, input);
+```
+
+### Step 3: Download and Save
+
+Download the generated image URL to a temporary location:
+
+```typescript
+const tempFolder = config.output.tempFolder.replace('{themeName}', themeName);
+const tempPath = `${tempFolder}/${assetSpec.filename}`;
+```
+
+### Step 4: Vision Critique
+
+Use Claude's vision capabilities with the critique prompt from config:
+
+```typescript
+// Load the generated image
+const imageBuffer = await readFile(tempPath);
+
+// Get critique prompt from config
+const critiquePrompt = assetSpec.critiquePrompt
+  .replace(/{THEME_NAME}/g, themeName);
+
+// Call vision API
+const critique = await claudeVision({
+  image: imageBuffer,
+  prompt: critiquePrompt
+});
+
+// Parse result
+const passed = critique.includes('PASS');
+const feedback = extractFeedback(critique);
+```
+
+**Example Critique Prompt (from config):**
+
+```
+Analyze this texture that will be used on 3D cube faces:
+1. Are the edges seamless? (Check all 4 edges - can it tile without visible seams?)
+2. Does it match the "{THEME_NAME}" theme aesthetic?
+3. Is there appropriate visual interest without being overwhelming?
+4. Are there any obvious artifacts, text, or watermarks?
+
+Respond with PASS or FAIL and specific reasons.
+```
+
+All critique prompts are defined in `.asset-gen-config.json`.
+
+### Step 5: Iteration (if FAIL)
+
+If vision critique fails:
+1. Analyze feedback for specific issues
+2. Refine prompt based on feedback (add negative prompts, adjust emphasis)
+3. Try different seed or model parameters
+4. Maximum attempts: `config.workflow.maxIterations` (typically 2)
+5. If still failing, flag for manual review
+
+### Step 6: Post-Processing
+
+Apply post-processing steps defined in the asset configuration:
+
+```typescript
+const postProcessingSteps = assetSpec.postProcessing || [];
+
+for (const step of postProcessingSteps) {
+  if (step.includes('Background removal')) {
+    // Use cjwbw/rembg Replicate model
+    const removed = await replicatePredict('cjwbw/rembg', {
+      image: imageUrl
+    });
+    imageBuffer = await downloadImage(removed.output);
+  }
+
+  if (step.includes('Alpha erosion')) {
+    // Shrink alpha channel by 1px
+    imageBuffer = await erodeAlpha(imageBuffer, 1);
+  }
+
+  if (step.includes('PNG compression')) {
+    imageBuffer = await sharp(imageBuffer).png({ compressionLevel: 9 }).toBuffer();
+  }
+
+  if (step.includes('JPEG compression')) {
+    const quality = parseInt(step.match(/\d+/)?.[0]) || 85;
+    imageBuffer = await sharp(imageBuffer).jpeg({ quality }).toBuffer();
+  }
+}
+```
+
+**Optional helper script:**
+
+If the project has a `post-process.js` script configured in `.asset-gen-config.json`, you can use it:
+
+```bash
+node path/to/post-process.js \
+  temp/cyberpunk/arrow-icon-raw.png \
+  temp/cyberpunk/arrow-icon.png \
+  arrow-icon
+```
+
+**Manual implementation using Sharp library:**
+```typescript
+import sharp from 'sharp';
+
+async function erodeAlphaChannel(imageBuffer: Buffer, pixels: number): Promise<Buffer> {
+  const { data, info } = await sharp(imageBuffer)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const eroded = await sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 }
+  }).erode(pixels).png().toBuffer();
+
+  return eroded;
+}
+```
+
+### Step 7: Validation
+
+Check final asset:
+- [ ] File size within budget
+- [ ] Correct format (JPEG/PNG)
+- [ ] Correct dimensions
+- [ ] Transparency present (for PNG assets)
+- [ ] No obvious artifacts
+
+### Step 8: Output
+
+Save final asset to the configured output location:
+```typescript
+const outputFolder = config.output.tempFolder.replace('{themeName}', themeName);
+const outputPath = `${outputFolder}/${assetSpec.filename}`;
+```
+
+Report results:
+- ✅ Success: Asset path, file size, critique feedback
+- ❌ Failure: Error details, iteration notes, recommendations
+
+## Dependencies
+
+The skill requires (as specified in `.asset-gen-config.json`):
+- Replicate MCP server (configured in project's `.mcp.json`)
+- Sharp library for post-processing (project dependency)
+- Access to Claude's vision API (built-in)
+- Optional: Custom post-processing scripts (if configured)
+
+## Example Output
+
+```
+✅ Asset Generated: block-texture for cyberpunk theme
+
+Path: temp/cyberpunk/block-texture.jpg
+Size: 142KB (within 150KB budget)
+Dimensions: 512x512
+Format: JPEG
+
+Vision Critique: PASS
+- Edges are seamless (tileable confirmed)
+- Strong cyberpunk aesthetic with neon accents
+- Good visual interest without overwhelming detail
+- No artifacts or watermarks detected
+
+Ready for integration into theme folder.
+```
+
+(Actual path depends on `output.tempFolder` configuration)
+
+## Error Handling
+
+### Common Issues
+
+**Issue: "Texture has visible seams"**
+- Retry with stronger emphasis on "seamless tileable"
+- Add to negative prompt: "borders, edges, seams"
+
+**Issue: "White halos on transparent icons"**
+- Apply alpha erosion (1-2px)
+- Retry background removal with different settings
+
+**Issue: "File size exceeds budget"**
+- Reduce JPEG quality (85% → 70%)
+- Reduce dimensions if quality allows
+- Increase PNG compression level
+
+**Issue: "Arrow doesn't point upward"**
+- Retry with clearer directional emphasis
+- Add to negative prompt: "sideways, horizontal, downward"
+
+## Integration with Orchestrator
+
+This skill is designed to be called by the `tech-artist-reskin` orchestrator skill. The orchestrator reads the same `.asset-gen-config.json` to determine which assets to generate:
+
+```typescript
+// Orchestrator reads config
+const config = JSON.parse(await readFile('.asset-gen-config.json'));
+const assetTypes = config.workflow.generationOrder;
+
+// Generate each asset in order
+for (const assetType of assetTypes) {
+  await generateAsset({
+    assetType,
+    themeName: 'cyberpunk',
+    themeDescription: 'metallic panels with neon circuits...',
+  });
+}
+```
+
+## Quality Standards
+
+Every generated asset must meet:
+
+1. **Visual Quality**: Matches theme, good looking, no artifacts
+2. **Technical Quality**: Correct format, dimensions, file size
+3. **Functional Quality**: Works as intended (tileable, transparent, readable)
+4. **Vision Validation**: Passes Claude's visual critique
+
+**Reject and retry if:**
+- Vision critique returns FAIL
+- File size exceeds budget by >20%
+- Dimensions are incorrect
+- Format is wrong (PNG vs JPEG)
+- Obvious quality issues (seams, halos, artifacts)
+
+---
+
+## Setup Instructions
+
+To use this skill in a new project:
+
+1. **Copy the configuration template** to your project root:
+   ```bash
+   cp .asset-gen-config.template.json .asset-gen-config.json
+   ```
+
+2. **Customize the configuration** for your project:
+   - Update `assetTypes` with your asset specifications
+   - Set `output.themeFolder` and `output.tempFolder` paths
+   - Configure `workflow.generationOrder` if needed
+   - Adjust prompt templates and critique prompts
+
+3. **Ensure dependencies are available**:
+   - Replicate MCP server configured in `.mcp.json`
+   - Sharp library installed (`npm install sharp` if needed)
+
+4. **Test with a single asset**:
+   ```
+   /generate-asset <asset_type> test "test theme description"
+   ```
+
+---
+
+**Skill Version:** 2.0.0 (Project-Agnostic)
+**Last Updated:** 2026-01-08
+**Status:** Production Ready

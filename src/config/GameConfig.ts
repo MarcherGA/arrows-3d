@@ -29,6 +29,7 @@ export interface ThemePalette {
   babylon: {
     blockDefault: [number, number, number];
     arrowColor: [number, number, number];
+    keyArrowColor: [number, number, number];
     background: [number, number, number, number];
     keyColor: [number, number, number];
     keyEmissive: [number, number, number];
@@ -257,14 +258,14 @@ export const TUTORIAL_CONFIG = {
 export const UI_CONFIG = {
   /** Currency gain per block removed */
   CURRENCY_PER_BLOCK: 1,
-  /** Currency icon path */
-  CURRENCY_ICON: "/icons/dollar-icon.png",
-  /** Currency floating animation icon */
-  CURRENCY_GAIN_ICON: "/icons/dollars.png",
+  /** Currency icon path - uses theme-specific asset */
+  CURRENCY_ICON: "currency-icon.png", // Will use getAssetPath()
+  /** Currency floating animation icon - same as currency icon */
+  CURRENCY_GAIN_ICON: "currency-icon.png", // Will use getAssetPath()
   /** Currency floating animation duration (ms) */
   CURRENCY_GAIN_DURATION: 1500,
-  /** Level icon path */
-  LEVEL_ICON: "/icons/piggy-bank.png",
+  /** Win/piggy bank icon path - uses theme-specific asset */
+  WIN_ICON: "piggy-bank.png", // Will use getAssetPath()
   /** Delay before showing win overlay (ms) */
   WIN_OVERLAY_DELAY: 500,
 } as const;
@@ -401,6 +402,7 @@ function getHardcodedPalette(): ThemePalette {
     babylon: {
       blockDefault: [1, 1, 1],
       arrowColor: [0.459, 0.176, 0.016],
+      keyArrowColor: [0.1, 0.1, 0.1],
       background: [0.2, 0.3, 0.4, 1],
       keyColor: [1, 0.843, 0],
       keyEmissive: [0.3, 0.25, 0],
@@ -438,6 +440,11 @@ export function getBlockColor(): Color3 {
 
 export function getArrowColor(): Color3 {
   const [r, g, b] = getPalette().babylon.arrowColor;
+  return new Color3(r, g, b);
+}
+
+export function getKeyArrowColor(): Color3 {
+  const [r, g, b] = getPalette().babylon.keyArrowColor;
   return new Color3(r, g, b);
 }
 

@@ -4,7 +4,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Animation} from "@babylonjs/core/Animations/animation";
 import { EasingFunction, CubicEase } from "@babylonjs/core/Animations/easing";
 import { BaseBlock, Direction } from "./BaseBlock";
-import { GameConfig, getKeyColor, getKeyEmissiveColor } from "../config/GameConfig";
+import { GameConfig, getKeyColor, getKeyEmissiveColor, getKeyArrowColor } from "../config/GameConfig";
 
 /**
  * KeyBlock - Gold block with pulse animation
@@ -43,8 +43,8 @@ export class KeyBlock extends BaseBlock {
   }
 
   protected getArrowColor(): Color3 {
-    // Light yellow for key block arrows
-    return new Color3(1, 1, 0.8);
+    // Use dark arrow color for key blocks (provides contrast on bright key blocks)
+    return getKeyArrowColor();
   }
 
   protected onSetupComplete(): void {
