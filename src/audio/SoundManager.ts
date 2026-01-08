@@ -149,26 +149,26 @@ export class SoundManager {
   private readonly soundConfigs: ReadonlyMap<SoundType, SoundConfig> = new Map([
     // Sound effects use static loading (full file in memory)
     [SoundType.BLOCK_CLICKED, {
-      path: '/sounds/block-moved.ogg',
+      path: '/assets/common/sounds/block-moved.ogg',
       volume: 0.3,
       loop: false,
       isStreaming: false
     }],
     [SoundType.BLOCK_BLOCKED, {
-      path: '/sounds/block-blocked.ogg',
+      path: '/assets/common/sounds/block-blocked.ogg',
       volume: 0.3,
       loop: false,
       isStreaming: false
     }],
     [SoundType.LEVEL_COMPLETE, {
-      path: '/sounds/win-sound.ogg',
+      path: '/assets/common/sounds/win-sound.ogg',
       volume: 0.5,
       loop: false,
       isStreaming: false
     }],
     // Background music uses streaming to save memory
     [SoundType.BACKGROUND_MUSIC, {
-      path: '/sounds/background-music.ogg',
+      path: '/assets/common/sounds/background-music.ogg',
       volume: 0.1,
       loop: true,
       isStreaming: true

@@ -144,7 +144,7 @@ export abstract class BaseBlock {
       try {
         const result = await SceneLoader.ImportMeshAsync(
           "",
-          "/models/",
+          "/assets/common/models/",
           "beveled-cube.glb",
           this.scene
         );
