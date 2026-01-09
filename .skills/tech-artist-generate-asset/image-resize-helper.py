@@ -249,6 +249,54 @@ def erode_alpha(input_path, output_path, pixels=1):
     }
 
 
+def threshold_to_black(input_path, output_path, alpha_threshold=10):
+    """
+    Convert all non-transparent pixels to pure black (#000000) for clean engine tinting.
+    This is the "Sticker & Contrast" strategy for icon generation.
+
+    Use this after background removal to create perfect black masks that game engines
+    can tint with any color without artifacts from "almost black" or colored pixels.
+
+    Args:
+        input_path: Path to input image (must have alpha channel)
+        output_path: Path to save output image
+        alpha_threshold: Alpha value below which pixels are considered transparent (0-255)
+
+    Returns:
+        dict: Result object with metadata
+    """
+    image = Image.open(input_path).convert('RGBA')
+    pixels = image.load()
+
+    pixels_converted = 0
+
+    for y in range(image.height):
+        for x in range(image.width):
+            r, g, b, a = pixels[x, y]
+
+            # If pixel is not transparent (alpha above threshold)
+            if a > alpha_threshold:
+                # Convert to pure black, preserve alpha
+                pixels[x, y] = (0, 0, 0, a)
+                pixels_converted += 1
+
+    image.save(output_path, 'PNG', optimize=True)
+
+    output_size = os.path.getsize(output_path)
+
+    return {
+        'success': True,
+        'input': {'path': input_path},
+        'output': {
+            'path': output_path,
+            'size': output_size
+        },
+        'alphaThreshold': alpha_threshold,
+        'pixelsConverted': pixels_converted,
+        'rationale': 'Pure black mask for clean game engine tinting'
+    }
+
+
 def batch_resize(config_path, input_folder, output_folder):
     """
     Batch resize all assets in a folder according to config
@@ -309,7 +357,7 @@ def main():
     """Main CLI interface"""
     args = sys.argv[1:]
 
-    if len(args) < 4 and args[0] not in ['--batch', '--remove-white', '--center', '--erode']:
+    if len(args) < 4 and args[0] not in ['--batch', '--remove-white', '--center', '--erode', '--threshold-black']:
         print("""
 Image Resize Helper - Project Agnostic Utility
 
@@ -329,6 +377,7 @@ Special Commands:
   python image-resize-helper.py --remove-white <input> <output> [threshold=240]
   python image-resize-helper.py --center <input> <output> <size> [padding=0.1]
   python image-resize-helper.py --erode <input> <output> [pixels=1]
+  python image-resize-helper.py --threshold-black <input> <output> [alpha-threshold=10]
 """)
         sys.exit(1)
 
@@ -344,6 +393,9 @@ Special Commands:
             print(json.dumps(result, indent=2))
         elif args[0] == '--erode':
             result = erode_alpha(args[1], args[2], int(args[3]) if len(args) > 3 else 1)
+            print(json.dumps(result, indent=2))
+        elif args[0] == '--threshold-black':
+            result = threshold_to_black(args[1], args[2], int(args[3]) if len(args) > 3 else 10)
             print(json.dumps(result, indent=2))
         else:
             input_path, output_path, width, height = args[:4]
