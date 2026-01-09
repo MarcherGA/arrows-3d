@@ -39,6 +39,7 @@
       "format": "JPEG",
       "sizeTarget": "150KB",
       "model": "google/nano-banana-pro",
+      "modelVersion": "google/nano-banana-pro",
       "modelParameters": {
         "aspect_ratio": "1:1",
         "resolution": "1K",
@@ -68,31 +69,33 @@
       "dimensions": { "width": 256, "height": 256 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro",
+      "model": "black-forest-labs/flux-1.1-pro-ultra",
+      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
       "modelParameters": {
         "aspect_ratio": "custom",
         "width": 256,
         "height": 256
       },
-      "critical": "Points upward, transparent background, simple design, CENTERED in frame",
-      "usage": "Displayed on block faces to indicate pull direction",
+      "critical": "Points upward, transparent background, simple flat design, CENTERED in frame, SOLID BLACK for engine tinting",
+      "usage": "Displayed on block faces to indicate pull direction (tinted by Babylon.js with arrowColor from palette)",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
+        "Threshold to pure black (convert non-transparent to #000000 for clean tinting)",
         "Alpha erosion (1px)",
         "Center in frame (contain-centered)",
         "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a VERY SIMPLE arrow icon pointing UPWARD, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- MINIMAL design - just a basic arrow shape, absolutely nothing else\n- Points straight UP (up arrow)\n- CENTERED in the middle of the frame\n- Completely transparent background\n- Flat, simple geometric style\n- NO environmental elements, NO circuit boards, NO textures, NO backgrounds\n- Square 256x256\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background elements, decorative borders, complex details, gradient backgrounds, shadows, 3D effects, realistic, detailed, ornate, off-center, asymmetric placement, circuit boards, tech patterns, environmental elements, busy backgrounds, textures, depth, perspective, ground shadows, drop shadows",
-      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is the background transparent (no white/gray edges)?\n4. Is it MINIMAL and simple (no environmental elements, circuit boards, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n6. Is it simple and readable at small sizes?\n7. Does it match the \"{THEME_NAME}\" theme?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "{THEME_NAME} styled arrow icon pointing straight UP. Simple geometric shape. Solid BLACK silhouette. Sharp edges. Flat vector graphic. Minimal design. White background. No colors, no gradients, pure black shape only.",
+      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Is it a SOLID BLACK SHAPE (flat, no gradients, no outlines)?\n5. Is it MINIMAL and simple (no environmental elements, no 3D effects)?\n6. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO gradients or shading effects?\n8. Does it look like a flat die-cut sticker (2D, not 3D)?\n9. Is it simple and readable at small sizes?\n10. CRITICAL: Check for 'grounding' - does the icon have a shadow underneath, platform, or look like it's sitting on a surface? If YES, this is a FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Clearly points UPWARD (will be rotated for other directions)",
         "CENTERED in the frame with equal padding on all sides",
-        "Transparent background (no white/gray edges or halos)",
+        "Solid black on white background (for clean rembg + threshold conversion)",
         "Simple, bold design (readable at 64x64 pixels)",
-        "Matches theme aesthetic",
-        "High contrast outline or solid fill"
+        "Flat 2D die-cut sticker style (no 3D, no grounding)",
+        "No shadows, gradients, or depth effects"
       ]
     },
     "background": {
@@ -101,6 +104,7 @@
       "format": "JPEG",
       "sizeTarget": "100KB",
       "model": "google/nano-banana-pro",
+      "modelVersion": "google/nano-banana-pro",
       "modelParameters": {
         "aspect_ratio": "9:16",
         "resolution": "1K",
@@ -132,7 +136,8 @@
       "dimensions": { "width": 512, "height": 512 },
       "format": "PNG",
       "sizeTarget": "50KB",
-      "model": "black-forest-labs/flux-1.1-pro",
+      "model": "black-forest-labs/flux-1.1-pro-ultra",
+      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
       "modelParameters": {
         "aspect_ratio": "custom",
         "width": 512,
@@ -153,8 +158,8 @@
         "promptStrength": 0.7,
         "rationale": "Ensures overlay material matches block material style"
       },
-      "promptTemplate": "Create a VERY SIMPLE lock icon with NO WHITE anywhere.\n\nREQUIREMENTS:\n- MINIMAL design - just a basic padlock shape, nothing else\n- Clear 'locked' symbol (simple padlock only)\n- FULLY transparent background - NO WHITE OR LIGHT GRAY anywhere\n- Use only dark or colored elements\n- Flat, simple geometric style\n- CENTERED in frame\n- NO environmental elements, NO circuit boards, NO chains, NO textures\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: white background, white fill, light colors, white elements, complex details, photorealistic, 3D effects, shadows, text, watermarks, off-center, circuit boards, tech patterns, environmental elements, busy backgrounds, chains, textures, depth, perspective, ground shadows, drop shadows, multiple elements",
-      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Is it MINIMAL (just the lock icon, no environmental elements, circuit boards, chains, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n6. Does it match the \"{THEME_NAME}\" theme?\n7. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining.",
+      "promptTemplate": "{THEME_NAME} styled padlock icon. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background.",
+      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Is it MINIMAL (just the lock icon floating, no environmental elements, circuit boards, chains, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, cast shadows, or 3D depth)?\n6. Are there NO platforms, pedestals, or base elements underneath the lock?\n7. Are there NO decorative extensions (circuit lines, wires, cables) coming out of the lock?\n8. Does it match the \"{THEME_NAME}\" theme?\n9. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining, or ANY shadows.",
       "qualityChecklist": [
         "Immediately recognizable as lock/chain/barrier",
         "FULLY transparent background (no white halos or fills)",
@@ -170,13 +175,14 @@
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro",
+      "model": "black-forest-labs/flux-1.1-pro-ultra",
+      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
       "modelParameters": {
         "aspect_ratio": "custom",
         "width": 128,
         "height": 128
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame",
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, flat vector style",
       "usage": "Coin/currency indicator in header",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
@@ -186,14 +192,15 @@
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a VERY SIMPLE currency/coin icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- MINIMAL flat icon - just the coin shape, nothing else\n- CENTERED in the middle of the frame\n- Completely transparent background\n- NO shadows, NO ground, NO 3D depth\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, ground shadows, drop shadows, depth, gradients, text, off-center, asymmetric placement, realistic lighting, perspective, environmental elements",
-      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n5. Does it match the \"{THEME_NAME}\" theme?\n6. Is the symbolism clear?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "{THEME_NAME} styled money bills icon. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered.",
+      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Is it a flat 2D vector style (die-cut sticker aesthetic)?\n5. Are there NO shadows of any kind (no ground shadows, drop shadows, or 3D depth)?\n6. Are there NO environmental elements (no scene, bokeh, platform)?\n7. Does it match the \"{THEME_NAME}\" theme aesthetic?\n8. Is the currency symbolism clear?\n9. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
         "CENTERED in the frame",
-        "Transparent background (no halos)",
+        "Solid white background (for clean rembg processing)",
+        "Flat 2D vector style (no 3D, no grounding)",
         "Matches theme aesthetic",
-        "Appropriate symbolism for function"
+        "Clear currency symbolism"
       ]
     },
     "logo": {
@@ -201,13 +208,14 @@
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro",
+      "model": "black-forest-labs/flux-1.1-pro-ultra",
+      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
       "modelParameters": {
         "aspect_ratio": "custom",
         "width": 128,
         "height": 128
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, based on reference logo",
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, based on reference logo, flat style",
       "usage": "Game logo/branding (favicon)",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
@@ -221,14 +229,15 @@
         "promptStrength": 0.6,
         "rationale": "Maintain recognizable logo structure while adapting theme aesthetics"
       },
-      "promptTemplate": "Create a themed version of this 3D cube puzzle game logo.\n\nREQUIREMENTS:\n- Based on the reference logo design (3D cube with arrows)\n- Adapt colors and style to match theme\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Completely transparent background\n- NO shadows, NO ground, NO environmental elements\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, ground shadows, drop shadows, depth, gradients, text, off-center, asymmetric placement, realistic lighting, perspective, environmental elements, busy backgrounds",
-      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Are there NO shadows (no ground shadows, drop shadows, or environmental elements)?\n5. Does it maintain recognizable elements from the reference logo?\n6. Does it match the \"{THEME_NAME}\" theme?\n7. Is it memorable and distinctive?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "{THEME_NAME} styled cube with arrows logo icon. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered.",
+      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Does the cube appear to float (no ground, platform, or base underneath)?\n5. Are there NO shadows of any kind (no ground shadows, drop shadows, reflections)?\n6. Is it a flat vector style (not a photorealistic 3D render)?\n7. Does it maintain recognizable elements from the reference logo (cube + arrows)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is it memorable and distinctive?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
         "CENTERED in the frame",
-        "Transparent background (no halos)",
-        "Matches theme aesthetic",
-        "Appropriate symbolism for function"
+        "Solid white background (for clean rembg processing)",
+        "Flat vector style (no photorealistic 3D, no grounding)",
+        "Recognizable logo elements (cube + arrows)",
+        "Matches theme aesthetic"
       ]
     }
   },
@@ -292,7 +301,7 @@
       "logo"
     ],
     "heroAsset": "block-texture",
-    "maxIterations": 2,
+    "maxIterations": 3,
     "validation": {
       "fileSize": true,
       "dimensions": true,

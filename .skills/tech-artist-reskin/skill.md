@@ -20,12 +20,13 @@ Fully automated game re-skinning orchestrator. Generates all visual assets for a
 2. **Initialization** - Validate inputs, create theme and temp folders
 3. **Asset Generation** - Generate all assets in configured order (hero asset first)
 4. **Post-Processing** - Resize, center, and process all assets using Python helper scripts
-5. **Color Extraction** - Use extract-colors.py for intelligent palette extraction
-6. **Integration** - Save assets and palette to theme folder
-7. **Theme Switch** - Update project config file to use new theme
-8. **Cleanup** - Remove temp folder after successful integration
-9. **Build Validation** - Run build, check size, verify success
-10. **Success Report** - Summary with file sizes and next steps
+5. **Post-Processing Validation** - Visually verify EACH operation succeeded (NEW)
+6. **Color Extraction** - Use extract-colors.py for intelligent palette extraction
+7. **Integration** - Save assets and palette to theme folder
+8. **Theme Switch** - Update project config file to use new theme
+9. **Cleanup** - Remove temp folder after successful integration
+10. **Build Validation** - Run build, check size, verify success
+11. **Success Report** - Summary with file sizes and next steps
 
 ## Configuration
 
@@ -118,6 +119,9 @@ for assetType in "${assetTypes[@]}"; do
 
   # Automated post-processing (background removal, alpha erosion, compression)
   $postProcess "$inputPath" "$outputPath" "$assetType"
+
+  # CRITICAL: Vision validation after post-processing (NEW)
+  # Do NOT assume the operation succeeded - visually verify!
 done
 
 # Option 2: Manual steps for more control
@@ -153,6 +157,72 @@ done
 - `contain-centered`: Resize to fit, center with transparent padding (icons)
 - `cover-crop`: Resize to cover, crop excess from center (textures/backgrounds)
 - `stretch`: Resize to exact dimensions (not recommended, may distort)
+
+### Phase 3.5: Post-Processing Validation (CRITICAL - NEW)
+
+**IMPORTANT:** After EACH post-processing operation, use Claude vision to validate that the asset still meets all requirements. Do NOT assume external scripts succeeded without visual confirmation.
+
+```typescript
+// After each post-processing step (background removal, resize, erosion, etc.)
+for (const assetType of assetTypes) {
+  const processedImageBuffer = await readFile(`${tempFolder}/${assetType}.${format}`);
+  const assetSpec = config.assetTypes[assetType];
+
+  const validationResult = await claudeVision({
+    image: processedImageBuffer,
+    prompt: `
+      Analyze this ${assetType} asset after post-processing operations:
+
+      1. Was the post-processing successful?
+      2. Are there any artifacts or quality issues introduced by external tools?
+      3. Does it still meet ALL requirements from the original critiquePrompt?
+      4. Specific post-processing checks:
+         - For background removal: Is background fully transparent? Any white halos or artifacts?
+         - For centering: Is asset centered with equal padding on all sides?
+         - For alpha erosion: Are edges clean but not over-eroded?
+         - For resize: Are dimensions correct? Any distortion or stretching?
+         - For compression: Is quality acceptable? No excessive artifacts?
+
+      Original asset requirements:
+      ${assetSpec.critiquePrompt}
+
+      Respond with PASS or FAIL and specific reasons for the decision.
+    `
+  });
+
+  if (!validationResult.includes('PASS')) {
+    console.log(`Post-processing validation FAILED for ${assetType}: ${validationResult}`);
+
+    // Iteration logic (counts towards maxIterations):
+    // - Try different post-processing parameters
+    // - Re-run the operation with adjusted settings
+    // - If all iterations exhausted, flag for manual review
+
+    // Example: Retry with less aggressive alpha erosion
+    if (currentIteration < config.workflow.maxIterations) {
+      currentIteration++;
+      // Retry post-processing with adjusted parameters
+    } else {
+      console.error(`Max iterations (${config.workflow.maxIterations}) reached for ${assetType}`);
+      // Flag for manual review
+    }
+  }
+}
+```
+
+**Why this is critical:**
+- External Python scripts can fail silently or produce unexpected results
+- Background removal may leave white halos, artifacts, or remove wanted elements
+- Resize operations can introduce distortion, misalignment, or incorrect dimensions
+- Alpha erosion can over-erode edges and damage the asset quality
+- Centering operations may not achieve equal padding as required
+- Compression may introduce visible artifacts
+- Vision validation catches these issues BEFORE integration into the game
+
+**Iteration Strategy:**
+- Post-processing validation failures count towards the `maxIterations` limit (now 3)
+- Each iteration can try different post-processing parameters
+- After max iterations, flag asset for manual review rather than proceeding with broken asset
 
 ### Phase 4: Color Extraction
 

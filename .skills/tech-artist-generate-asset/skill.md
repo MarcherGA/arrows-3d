@@ -23,8 +23,9 @@ Generate a single high-quality game asset using AI image generation with automat
 4. **Vision Critique** - Validate quality using critique prompt from config
 5. **Iteration** - Retry up to `maxIterations` if critique fails
 6. **Post-Processing** - Apply steps from config (background removal, erosion, compression)
-7. **Validation** - Check size, format, dimensions, transparency
-8. **Save** - Output to configured temp folder
+7. **Post-Processing Validation** - Use vision to verify EACH operation succeeded (NEW)
+8. **Final Validation** - Check size, format, dimensions, transparency
+9. **Save** - Output to configured temp folder
 
 ## Configuration
 
@@ -50,8 +51,8 @@ Requires `.asset-gen-config.json` in project root:
     "tempFolder": "temp/{themeName}/"
   },
   "workflow": {
-    "maxIterations": 2,
-    "validation": { "fileSize": true, "dimensions": true, "format": true, "transparency": true, "visionCritique": true }
+    "maxIterations": 3,
+    "validation": { "fileSize": true, "dimensions": true, "format": true, "transparency": true, "visionCritique": true, "postProcessingValidation": true }
   }
 }
 ```
@@ -124,6 +125,49 @@ python .skills/tech-artist-generate-asset/image-resize-helper.py \
 python .skills/tech-artist-generate-asset/image-resize-helper.py \
   --erode output/theme/asset.png output/theme/asset.png 1
 ```
+
+### Post-Processing Validation (CRITICAL)
+
+**IMPORTANT:** After EACH post-processing operation, use Claude vision to validate that the asset still meets requirements. Do NOT assume the operation succeeded without visual confirmation.
+
+```typescript
+// After each post-processing step (background removal, resize, erosion, etc.)
+const validationResult = await claudeVision({
+  image: processedImageBuffer,
+  prompt: `
+    Analyze this asset after [OPERATION_NAME] (e.g., "background removal", "alpha erosion", "resize and center"):
+
+    1. Was the operation successful?
+    2. Are there any artifacts or quality issues introduced?
+    3. Does it still meet ALL requirements from the original critiquePrompt?
+    4. Specific checks:
+       - For background removal: Is background fully transparent? Any white halos?
+       - For centering: Is asset centered with equal padding?
+       - For alpha erosion: Are edges clean but not over-eroded?
+       - For resize: Are dimensions correct? Any distortion?
+
+    Original requirements: ${assetSpec.critiquePrompt}
+
+    Respond with PASS or FAIL and specific reasons for the decision.
+  `
+});
+
+if (!validationResult.includes('PASS')) {
+  // Iteration logic:
+  // - Try different parameters (e.g., less aggressive erosion)
+  // - Re-run the operation
+  // - Count towards maxIterations limit
+  console.log(`Post-processing validation FAILED: ${validationResult}`);
+  // Retry with adjusted parameters or flag for manual review
+}
+```
+
+**Why this is critical:**
+- External scripts can fail silently or produce unexpected results
+- Background removal may leave artifacts or remove wanted elements
+- Resize operations can introduce distortion or misalignment
+- Alpha erosion can over-erode and damage the asset
+- Vision validation catches these issues before integration
 
 **Asset types for post-process.py:**
 - `block-texture` - JPEG compression (150KB target)

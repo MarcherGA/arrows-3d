@@ -410,7 +410,7 @@ Analyze this lock/chain overlay icon:
 Respond with PASS or FAIL and specific reasons.
 ```
 
-**Iteration Strategy:** Max 2 attempts per asset. If FAIL on second attempt, flag for manual review.
+**Iteration Strategy:** Max 3 attempts per asset. If FAIL on third attempt, flag for manual review.
 
 ---
 
