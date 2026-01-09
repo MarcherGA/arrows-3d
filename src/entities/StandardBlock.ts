@@ -2,7 +2,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { BaseBlock, Direction } from "./BaseBlock";
-import { GameConfig, getArrowColor } from "../config/GameConfig";
+import { getArrowColor } from "../config/GameConfig";
 
 /**
  * StandardBlock - Basic block with default behavior
