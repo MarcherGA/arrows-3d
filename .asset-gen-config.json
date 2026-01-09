@@ -32,17 +32,16 @@
     "reference-logo": "public/assets/wood/logo.png"
   },
   "assetTypes": {
-    "_comment": "Model-specific parameters: FLUX (aspect_ratio='custom' requires width/height in multiples of 32, range 256-1440) | Nano Banana Pro (aspect_ratio presets only: 1:1, 9:16, etc. + resolution: 1K/2K/4K, no custom width/height). Post-processing resize handles final dimensions.",
+    "_comment": "Model-specific parameters: Nano Banana (aspect_ratio presets only: 1:1, 9:16, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 16:9, 21:9, etc. + output_format: jpg/png, no custom width/height or resolution parameter). Post-processing resize handles final dimensions.",
     "block-texture": {
       "filename": "block-texture.jpg",
       "dimensions": { "width": 512, "height": 512 },
       "format": "JPEG",
       "sizeTarget": "150KB",
-      "model": "google/nano-banana-pro",
-      "modelVersion": "google/nano-banana-pro",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
         "aspect_ratio": "1:1",
-        "resolution": "1K",
         "output_format": "jpg"
       },
       "critical": "SEAMLESS TILEABLE + UNIFORM SCALE (wraps on all 4 edges without visible seams, looks good when stretched non-uniformly)",
@@ -69,12 +68,11 @@
       "dimensions": { "width": 256, "height": 256 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro-ultra",
-      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
-        "aspect_ratio": "custom",
-        "width": 256,
-        "height": 256
+        "aspect_ratio": "1:1",
+        "output_format": "png"
       },
       "critical": "Points upward, transparent background, simple flat design, CENTERED in frame, SOLID BLACK for engine tinting",
       "usage": "Displayed on block faces to indicate pull direction (tinted by Babylon.js with arrowColor from palette)",
@@ -103,11 +101,10 @@
       "dimensions": { "width": 768, "height": 1344 },
       "format": "JPEG",
       "sizeTarget": "100KB",
-      "model": "google/nano-banana-pro",
-      "modelVersion": "google/nano-banana-pro",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
         "aspect_ratio": "9:16",
-        "resolution": "1K",
         "output_format": "jpg"
       },
       "critical": "Non-distracting, suitable for UI overlay",
@@ -136,12 +133,11 @@
       "dimensions": { "width": 512, "height": 512 },
       "format": "PNG",
       "sizeTarget": "50KB",
-      "model": "black-forest-labs/flux-1.1-pro-ultra",
-      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
-        "aspect_ratio": "custom",
-        "width": 512,
-        "height": 512
+        "aspect_ratio": "1:1",
+        "output_format": "png"
       },
       "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED",
       "usage": "Overlaid on locked blocks to indicate they cannot be removed",
@@ -175,12 +171,11 @@
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro-ultra",
-      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
-        "aspect_ratio": "custom",
-        "width": 128,
-        "height": 128
+        "aspect_ratio": "1:1",
+        "output_format": "png"
       },
       "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, flat vector style",
       "usage": "Coin/currency indicator in header",
@@ -208,12 +203,11 @@
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-1.1-pro-ultra",
-      "modelVersion": "black-forest-labs/flux-1.1-pro-ultra",
+      "model": "google/nano-banana",
+      "modelVersion": "google/nano-banana",
       "modelParameters": {
-        "aspect_ratio": "custom",
-        "width": 128,
-        "height": 128
+        "aspect_ratio": "1:1",
+        "output_format": "png"
       },
       "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, based on reference logo, flat style",
       "usage": "Game logo/branding (favicon)",
