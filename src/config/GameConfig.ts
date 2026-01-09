@@ -269,8 +269,8 @@ export const UI_CONFIG = {
   CURRENCY_GAIN_ICON: "currency-icon.png", // Will use getAssetPath()
   /** Currency floating animation duration (ms) */
   CURRENCY_GAIN_DURATION: 1500,
-  /** Win/piggy bank icon path - uses theme-specific asset */
-  WIN_ICON: "piggy-bank.png", // Will use getAssetPath()
+  /** Win/piggy bank icon path - uses common asset (theme-independent) */
+  WIN_ICON: "/assets/common/icons/piggy-bank.png", // Common asset, not theme-specific
   /** Delay before showing win overlay (ms) */
   WIN_OVERLAY_DELAY: 500,
 } as const;

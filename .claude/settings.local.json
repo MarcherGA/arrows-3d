@@ -15,7 +15,10 @@
       "Bash(curl:*)",
       "mcp__replicate__create_predictions",
       "Bash(node:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(python:*)",
+      "Bash(move:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

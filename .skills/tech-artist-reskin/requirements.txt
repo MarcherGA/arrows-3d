@@ -1,0 +1,8 @@
+# Python dependencies for tech-artist-reskin skill
+# Install with: pip install -r requirements.txt
+
+# Image processing library
+Pillow>=10.0.0
+
+# Numerical computing (for color extraction)
+numpy>=1.24.0

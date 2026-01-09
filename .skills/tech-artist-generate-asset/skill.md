@@ -95,36 +95,93 @@ const passed = critique.includes('PASS');
 ```
 
 ### Post-Processing
+
+Post-processing uses Python helper scripts from `.skills/tech-artist-generate-asset/`:
+
+**Option 1: Use post-process.py (recommended)**
+```bash
+python .skills/tech-artist-generate-asset/post-process.py \
+  temp/theme/asset-raw.webp \
+  output/theme/asset.png \
+  arrow-icon
+```
+
+**Option 2: Individual steps**
+```bash
+# 1. Background removal (for transparent assets)
+python .skills/tech-artist-generate-asset/remove-bg.py \
+  temp/theme/asset-raw.webp \
+  temp/theme/asset-nobg.png \
+  240
+
+# 2. Image resizing (if needed)
+python .skills/tech-artist-generate-asset/image-resize-helper.py \
+  temp/theme/asset-nobg.png \
+  output/theme/asset.png \
+  256 256 contain-centered
+
+# 3. Alpha erosion (remove white halos)
+python .skills/tech-artist-generate-asset/image-resize-helper.py \
+  --erode output/theme/asset.png output/theme/asset.png 1
+```
+
+**Asset types for post-process.py:**
+- `block-texture` - JPEG compression (150KB target)
+- `background` - JPEG compression (100KB target)
+- `arrow-icon` - PNG with background removal + alpha erosion (20KB target)
+- `lock-overlay` - PNG with background removal + alpha erosion (50KB target)
+- `currency-icon` - PNG with background removal + alpha erosion (20KB target)
+- `piggy-bank` - PNG with background removal + alpha erosion (20KB target)
+- `logo` - PNG with background removal + alpha erosion (20KB target)
+
+**For production quality background removal:**
+Use Replicate's `cjwbw/rembg` model via MCP:
 ```typescript
-for (const step of assetSpec.postProcessing) {
-  if (step.includes('Background removal')) {
-    imageBuffer = await replicatePredict('cjwbw/rembg', { image: imageUrl });
-  }
-  if (step.includes('Alpha erosion')) {
-    imageBuffer = await erodeAlpha(imageBuffer, 1);
-  }
-  if (step.includes('PNG compression')) {
-    imageBuffer = await sharp(imageBuffer).png({ compressionLevel: 9 }).toBuffer();
-  }
-  if (step.includes('JPEG compression')) {
-    const quality = parseInt(step.match(/\d+/)?.[0]) || 85;
-    imageBuffer = await sharp(imageBuffer).jpeg({ quality }).toBuffer();
-  }
-}
+const prediction = await mcp__replicate__create_predictions({
+  version: "cjwbw/rembg",
+  input: { image: imageUrl }
+});
+const noBgImageUrl = prediction.output;
 ```
 
 ## Dependencies
 
-- Replicate MCP server (`.mcp.json`)
-- Sharp library for image processing
+**Required:**
+- Replicate MCP server (`.mcp.json` with `REPLICATE_API_TOKEN`)
+- Python 3.8+ with Pillow and numpy (`pip install -r requirements.txt`)
 - Claude vision API
+
+**Python Helper Scripts:**
+- `post-process.py` - Complete post-processing pipeline
+- `remove-bg.py` - Background removal utility
+- `image-resize-helper.py` - Image resizing with multiple strategies
 
 ## Setup for New Project
 
-1. Copy `.asset-gen-config.json` template to project root
-2. Customize: asset types, output paths, models, prompts
-3. Ensure dependencies installed
-4. Test: `/generate-asset <type> test "test description"`
+1. **Copy skill folder** to project (or reference globally)
+   ```bash
+   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.skills/
+   ```
+
+2. **Install Python dependencies**
+   ```bash
+   cd .skills/tech-artist-generate-asset
+   pip install -r requirements.txt
+   ```
+
+3. **Copy config template** to project root
+   ```bash
+   cp .asset-gen-config.json /path/to/new-project/
+   ```
+
+4. **Customize config**: asset types, output paths, models, prompts
+
+5. **Configure Replicate MCP** in project's `.mcp.json`
+
+6. **Test generation**
+   ```bash
+   /generate-asset arrow-icon test "test theme description"
+   ```
 
 ---
 

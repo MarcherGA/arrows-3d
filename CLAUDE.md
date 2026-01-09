@@ -33,15 +33,16 @@ public/assets/
 │   ├── background.jpg       # 1920x1080, game background
 │   ├── lock-overlay.png     # 512x512, transparent lock icon
 │   ├── currency-icon.png    # 128x128, transparent coin icon
-│   ├── piggy-bank.png       # 128x128, transparent piggy bank
 │   ├── logo.png             # 128x128, transparent game logo
 │   └── palette.json         # Color definitions (Babylon.js + CSS)
 │
 ├── cyberpunk/               # Example: Neon cyberpunk theme
-│   ├── (same 7 assets + palette.json)
+│   ├── (same 6 assets + palette.json)
 │   └── ...
 │
-└── common/                  # Shared assets (not theme-specific)
+└── common/                  # Shared assets (theme-independent)
+    ├── icons/
+    │   └── piggy-bank.png   # 128x128, victory screen icon (used by all themes)
     ├── models/
     │   └── beveled-cube.glb # 3D block model
     └── sounds/
@@ -298,17 +299,18 @@ white edges, multiple locks, realistic photography
 
 ---
 
-### Asset Types 5-7: UI Icons
+### Asset Types 5-6: UI Icons
 
-**Files:** `currency-icon.png`, `win-icon.png`, `logo.png`
+**Files:** `currency-icon.png`, `logo.png`
 **Dimensions:** 128x128 pixels
 **Format:** PNG with alpha transparency
 **Size Target:** <20KB each
 **Critical Requirement:** Simple, readable, transparent background
 
+**Note:** The piggy bank victory icon is a **common asset** (`/assets/common/icons/piggy-bank.png`) shared across all themes since it's displayed with CSS filter inverted to solid white.
+
 #### What They're Used For
 - **currency-icon.png:** Coin/currency indicator in header
-- **win-icon.png:** Victory screen icon (piggy bank in wood theme)
 - **logo.png:** Game logo/branding
 
 #### Quality Checklist
@@ -771,12 +773,6 @@ Neon coin with circuit patterns, holographic appearance, electric blue
 and pink accents, transparent background, simple iconic design
 ```
 
-**Win Icon:**
-```
-Futuristic piggy bank with neon glow, holographic appearance, electric blue
-and pink, transparent background, cyberpunk aesthetic
-```
-
 **Logo:**
 ```
 Arrow Block 3D logo with neon glow effect, futuristic font style,
@@ -953,9 +949,11 @@ export const THEME_CONFIG = {
 - [ ] background.jpg (1920x1080, <100KB)
 - [ ] lock-overlay.png (512x512, <50KB, transparent)
 - [ ] currency-icon.png (128x128, <20KB, transparent)
-- [ ] win-icon.png (128x128, <20KB, transparent)
 - [ ] logo.png (128x128, <20KB, transparent)
 - [ ] palette.json (color definitions)
+
+**Common Assets (Shared across all themes):**
+- [ ] piggy-bank.png (128x128, <20KB, transparent) → `/assets/common/icons/`
 
 ---
 

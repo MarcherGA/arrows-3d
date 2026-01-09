@@ -20,23 +20,29 @@
     "notes": "HTML5 playable ad with assets inlined as Base64"
   },
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.js",
+    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
       "backgrounds": "cover-crop"
     }
   },
+  "referenceAssets": {
+    "_comment": "Reference assets used as image_prompt for style transfer. Paths are relative to project root.",
+    "reference-logo": "public/assets/wood/logo.png"
+  },
   "assetTypes": {
-    "_comment": "Each asset type includes 'modelParameters' for Flux API. Use 'aspect_ratio: custom' for custom dimensions (512x512, 256x256, 1920x1080) or '1:1' for square preset (which generates 1024x1024 then gets resized).",
+    "_comment": "Model-specific parameters: FLUX (aspect_ratio='custom' requires width/height in multiples of 32, range 256-1440) | Nano Banana Pro (aspect_ratio presets only: 1:1, 9:16, etc. + resolution: 1K/2K/4K, no custom width/height). Post-processing resize handles final dimensions.",
     "block-texture": {
       "filename": "block-texture.jpg",
       "dimensions": { "width": 512, "height": 512 },
       "format": "JPEG",
       "sizeTarget": "150KB",
-      "model": "black-forest-labs/flux-1.1-pro",
+      "model": "google/nano-banana-pro",
       "modelParameters": {
-        "aspect_ratio": "custom"
+        "aspect_ratio": "1:1",
+        "resolution": "1K",
+        "output_format": "jpg"
       },
       "critical": "SEAMLESS TILEABLE + UNIFORM SCALE (wraps on all 4 edges without visible seams, looks good when stretched non-uniformly)",
       "usage": "Applied as material to all block faces in the 3D scene - may be stretched on non-square faces",
@@ -62,9 +68,11 @@
       "dimensions": { "width": 256, "height": 256 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-schnell",
+      "model": "black-forest-labs/flux-1.1-pro",
       "modelParameters": {
-        "aspect_ratio": "custom"
+        "aspect_ratio": "custom",
+        "width": 256,
+        "height": 256
       },
       "critical": "Points upward, transparent background, simple design, CENTERED in frame",
       "usage": "Displayed on block faces to indicate pull direction",
@@ -76,8 +84,8 @@
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple arrow icon pointing UPWARD, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Just the arrow shape, nothing else\n- Points straight UP (up arrow)\n- CENTERED in the middle of the frame\n- Transparent background\n- Flat, simple style\n- Square 256x256\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background elements, decorative borders, complex details, gradient backgrounds, shadows, 3D effects, realistic, detailed, ornate, off-center, asymmetric placement",
-      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is the background transparent (no white/gray edges)?\n4. Is it simple and readable at small sizes?\n5. Does it match the \"{THEME_NAME}\" theme?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a VERY SIMPLE arrow icon pointing UPWARD, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- MINIMAL design - just a basic arrow shape, absolutely nothing else\n- Points straight UP (up arrow)\n- CENTERED in the middle of the frame\n- Completely transparent background\n- Flat, simple geometric style\n- NO environmental elements, NO circuit boards, NO textures, NO backgrounds\n- Square 256x256\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: background elements, decorative borders, complex details, gradient backgrounds, shadows, 3D effects, realistic, detailed, ornate, off-center, asymmetric placement, circuit boards, tech patterns, environmental elements, busy backgrounds, textures, depth, perspective, ground shadows, drop shadows",
+      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is the background transparent (no white/gray edges)?\n4. Is it MINIMAL and simple (no environmental elements, circuit boards, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n6. Is it simple and readable at small sizes?\n7. Does it match the \"{THEME_NAME}\" theme?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Clearly points UPWARD (will be rotated for other directions)",
         "CENTERED in the frame with equal padding on all sides",
@@ -92,9 +100,11 @@
       "dimensions": { "width": 768, "height": 1344 },
       "format": "JPEG",
       "sizeTarget": "100KB",
-      "model": "black-forest-labs/flux-dev",
+      "model": "google/nano-banana-pro",
       "modelParameters": {
-        "aspect_ratio": "custom"
+        "aspect_ratio": "9:16",
+        "resolution": "1K",
+        "output_format": "jpg"
       },
       "critical": "Non-distracting, suitable for UI overlay",
       "usage": "Full-screen background behind the 3D scene and UI",
@@ -124,7 +134,9 @@
       "sizeTarget": "50KB",
       "model": "black-forest-labs/flux-1.1-pro",
       "modelParameters": {
-        "aspect_ratio": "custom"
+        "aspect_ratio": "custom",
+        "width": 512,
+        "height": 512
       },
       "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED",
       "usage": "Overlaid on locked blocks to indicate they cannot be removed",
@@ -141,8 +153,8 @@
         "promptStrength": 0.7,
         "rationale": "Ensures overlay material matches block material style"
       },
-      "promptTemplate": "Create a simple lock/chain overlay icon with NO WHITE anywhere.\n\nREQUIREMENTS:\n- Clear 'locked' symbol (padlock, chain, etc.)\n- FULLY transparent background - NO WHITE OR LIGHT GRAY anywhere\n- Use only dark or colored elements\n- Flat, simple style\n- CENTERED in frame\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: white background, white fill, light colors, white elements, complex details, photorealistic, 3D effects, shadows, text, watermarks, off-center",
-      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining.",
+      "promptTemplate": "Create a VERY SIMPLE lock icon with NO WHITE anywhere.\n\nREQUIREMENTS:\n- MINIMAL design - just a basic padlock shape, nothing else\n- Clear 'locked' symbol (simple padlock only)\n- FULLY transparent background - NO WHITE OR LIGHT GRAY anywhere\n- Use only dark or colored elements\n- Flat, simple geometric style\n- CENTERED in frame\n- NO environmental elements, NO circuit boards, NO chains, NO textures\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: white background, white fill, light colors, white elements, complex details, photorealistic, 3D effects, shadows, text, watermarks, off-center, circuit boards, tech patterns, environmental elements, busy backgrounds, chains, textures, depth, perspective, ground shadows, drop shadows, multiple elements",
+      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Is it MINIMAL (just the lock icon, no environmental elements, circuit boards, chains, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n6. Does it match the \"{THEME_NAME}\" theme?\n7. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining.",
       "qualityChecklist": [
         "Immediately recognizable as lock/chain/barrier",
         "FULLY transparent background (no white halos or fills)",
@@ -158,9 +170,11 @@
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-schnell",
+      "model": "black-forest-labs/flux-1.1-pro",
       "modelParameters": {
-        "aspect_ratio": "1:1"
+        "aspect_ratio": "custom",
+        "width": 128,
+        "height": 128
       },
       "critical": "Simple, iconic, readable at small sizes, CENTERED in frame",
       "usage": "Coin/currency indicator in header",
@@ -172,8 +186,8 @@
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "Create a simple currency/coin icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, off-center, asymmetric placement",
-      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Is the symbolism clear?\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "Create a VERY SIMPLE currency/coin icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- MINIMAL flat icon - just the coin shape, nothing else\n- CENTERED in the middle of the frame\n- Completely transparent background\n- NO shadows, NO ground, NO 3D depth\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, ground shadows, drop shadows, depth, gradients, text, off-center, asymmetric placement, realistic lighting, perspective, environmental elements",
+      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n5. Does it match the \"{THEME_NAME}\" theme?\n6. Is the symbolism clear?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
         "CENTERED in the frame",
@@ -182,50 +196,18 @@
         "Appropriate symbolism for function"
       ]
     },
-    "piggy-bank": {
-      "filename": "piggy-bank.png",
-      "dimensions": { "width": 128, "height": 128 },
-      "format": "PNG",
-      "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-schnell",
-      "modelParameters": {
-        "aspect_ratio": "1:1"
-      },
-      "critical": "Simple SOLID SILHOUETTE style (will be filled with white via CSS filter), CENTERED",
-      "usage": "Victory screen icon (piggy bank represents currency savings/goal) - displayed with CSS filter: brightness(0) invert(1)",
-      "postProcessing": [
-        "Background removal (cjwbw/rembg)",
-        "Alpha erosion (1px)",
-        "Center in frame (contain-centered)",
-        "Resize to exact dimensions",
-        "PNG compression (level 9)"
-      ],
-      "styleReference": null,
-      "promptTemplate": "Create a simple piggy bank SILHOUETTE icon, perfectly CENTERED. This icon will be displayed as a solid white fill.\n\nREQUIREMENTS:\n- Simple, flat SOLID silhouette style (single color fill)\n- CENTERED in the middle of the frame\n- Transparent background\n- Clear piggy bank shape recognizable as silhouette\n- Square 128x128\n\nSTYLE: Simple solid silhouette that works with {THEME_DESCRIPTION} when shown as white fill\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, multiple colors, off-center, internal details",
-      "critiquePrompt": "Analyze this piggy bank icon:\n1. Is it a simple SOLID shape that would work well as a silhouette?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it clearly represent a piggy bank even as a simple shape?\n5. Would it look good when displayed as solid white (CSS filter invert)?\n\nRespond with PASS or FAIL and specific reasons.",
-      "qualityChecklist": [
-        "Simple SOLID silhouette design (works as single-color fill)",
-        "CENTERED in the frame",
-        "Transparent background (no halos)",
-        "Clearly recognizable as piggy bank",
-        "Works well when CSS-inverted to white"
-      ],
-      "alternativeStrategy": {
-        "useCommonAsset": true,
-        "commonAssetPath": "public/assets/common/icons/piggy-bank.png",
-        "rationale": "If silhouette generation is inconsistent, use a single common piggy bank icon for all themes since it's CSS-inverted to white anyway"
-      }
-    },
     "logo": {
       "filename": "logo.png",
       "dimensions": { "width": 128, "height": 128 },
       "format": "PNG",
       "sizeTarget": "20KB",
-      "model": "black-forest-labs/flux-schnell",
+      "model": "black-forest-labs/flux-1.1-pro",
       "modelParameters": {
-        "aspect_ratio": "1:1"
+        "aspect_ratio": "custom",
+        "width": 128,
+        "height": 128
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame",
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, based on reference logo",
       "usage": "Game logo/branding (favicon)",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
@@ -234,9 +216,13 @@
         "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
-      "styleReference": null,
-      "promptTemplate": "Create a simple game logo icon, perfectly CENTERED in the frame.\n\nREQUIREMENTS:\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Transparent background\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, gradients, text, off-center, asymmetric placement",
-      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Does it match the \"{THEME_NAME}\" theme?\n5. Is it memorable and distinctive?\n\nRespond with PASS or FAIL and specific reasons.",
+      "styleReference": {
+        "asset": "reference-logo",
+        "promptStrength": 0.6,
+        "rationale": "Maintain recognizable logo structure while adapting theme aesthetics"
+      },
+      "promptTemplate": "Create a themed version of this 3D cube puzzle game logo.\n\nREQUIREMENTS:\n- Based on the reference logo design (3D cube with arrows)\n- Adapt colors and style to match theme\n- Simple, flat icon style\n- CENTERED in the middle of the frame\n- Completely transparent background\n- NO shadows, NO ground, NO environmental elements\n- Square 128x128\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: complex details, photorealistic, 3D render, shadows, ground shadows, drop shadows, depth, gradients, text, off-center, asymmetric placement, realistic lighting, perspective, environmental elements, busy backgrounds",
+      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is the background transparent?\n4. Are there NO shadows (no ground shadows, drop shadows, or environmental elements)?\n5. Does it maintain recognizable elements from the reference logo?\n6. Does it match the \"{THEME_NAME}\" theme?\n7. Is it memorable and distinctive?\n\nRespond with PASS or FAIL and specific reasons.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
         "CENTERED in the frame",
@@ -288,6 +274,14 @@
       }
     }
   },
+  "commonAssets": {
+    "_comment": "Theme-independent assets shared across all themes. These are NOT generated and should NOT be included in theme folders.",
+    "piggy-bank": {
+      "path": "public/assets/common/icons/piggy-bank.png",
+      "usage": "Victory screen icon - displayed with CSS filter: brightness(0) invert(1)",
+      "rationale": "Single common piggy bank silhouette used for all themes since it's CSS-inverted to solid white"
+    }
+  },
   "workflow": {
     "generationOrder": [
       "block-texture",
@@ -295,7 +289,6 @@
       "lock-overlay",
       "arrow-icon",
       "currency-icon",
-      "piggy-bank",
       "logo"
     ],
     "heroAsset": "block-texture",
@@ -321,17 +314,17 @@
     },
     "postProcessingScript": {
       "required": false,
-      "scriptPath": ".skills/tech-artist-generate-asset/post-process.js",
-      "fallback": "Use Sharp library directly"
+      "scriptPath": ".skills/tech-artist-generate-asset/post-process.py",
+      "fallback": "Use Pillow library directly"
     },
     "resizeHelper": {
       "required": true,
-      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.js",
-      "fallback": "Use Sharp library with manual resize commands"
+      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.py",
+      "fallback": "Use Pillow library with manual resize commands"
     },
     "colorExtractionScript": {
       "required": false,
-      "scriptPath": ".skills/tech-artist-reskin/extract-colors.js",
+      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py",
       "fallback": "Use vision-based extraction"
     }
   }

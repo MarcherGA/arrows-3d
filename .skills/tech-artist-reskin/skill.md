@@ -19,8 +19,8 @@ Fully automated game re-skinning orchestrator. Generates all visual assets for a
 1. **Load Configuration** - Read `.asset-gen-config.json` for project settings
 2. **Initialization** - Validate inputs, create theme and temp folders
 3. **Asset Generation** - Generate all assets in configured order (hero asset first)
-4. **Post-Processing** - Resize, center, and process all assets using image-resize-helper.js
-5. **Color Extraction** - Vision-based intelligent palette extraction
+4. **Post-Processing** - Resize, center, and process all assets using Python helper scripts
+5. **Color Extraction** - Use extract-colors.py for intelligent palette extraction
 6. **Integration** - Save assets and palette to theme folder
 7. **Theme Switch** - Update project config file to use new theme
 8. **Cleanup** - Remove temp folder after successful integration
@@ -41,11 +41,17 @@ Uses `.asset-gen-config.json` from project root:
     "cleanupTempFolder": true
   },
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.js",
+    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
       "backgrounds": "cover-crop"
+    }
+  },
+  "dependencies": {
+    "colorExtractionScript": {
+      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py",
+      "fallback": "Use vision-based extraction"
     }
   },
   "workflow": {
@@ -100,38 +106,47 @@ for (const assetType of assetTypes.filter(a => a !== heroAsset)) {
 
 **CRITICAL:** All assets must be resized to exact dimensions specified in config.
 
-```typescript
-// Use image-resize-helper.js from tech-artist-generate-asset for all post-processing
-const resizeHelper = config.postProcessing.resizeHelper;
+```bash
+# Use Python helper scripts from tech-artist-generate-asset for all post-processing
+resizeHelper="python .skills/tech-artist-generate-asset/image-resize-helper.py"
+postProcess="python .skills/tech-artist-generate-asset/post-process.py"
 
-for (const [assetType, assetConfig] of Object.entries(config.assetTypes)) {
-  const inputPath = `${tempFolder}/${assetConfig.filename}`;
-  const { width, height } = assetConfig.dimensions;
+# Option 1: Use post-process.py for complete pipeline (recommended)
+for assetType in "${assetTypes[@]}"; do
+  inputPath="${tempFolder}/${assetType}-raw.webp"
+  outputPath="${tempFolder}/${assetType}.${format}"
 
-  // Determine strategy based on asset type
-  let strategy = 'contain-centered'; // Default for icons
-  if (assetConfig.filename.includes('texture') || assetConfig.filename.includes('background')) {
-    strategy = 'cover-crop'; // For textures and backgrounds - NO stretching
-  }
+  # Automated post-processing (background removal, alpha erosion, compression)
+  $postProcess "$inputPath" "$outputPath" "$assetType"
+done
 
-  // Check postProcessing for explicit strategy
-  if (assetConfig.postProcessing) {
-    for (const step of assetConfig.postProcessing) {
-      if (step.includes('contain-centered')) strategy = 'contain-centered';
-      if (step.includes('cover-crop')) strategy = 'cover-crop';
-      if (step.includes('Center in frame')) {
-        // Center the icon first
-        await exec(`node ${resizeHelper} --center ${inputPath} ${inputPath} ${width}`);
-      }
-      if (step.includes('White color removal')) {
-        await exec(`node ${resizeHelper} --remove-white ${inputPath} ${inputPath} 240`);
-      }
-    }
-  }
+# Option 2: Manual steps for more control
+for assetType in "${assetTypes[@]}"; do
+  inputPath="${tempFolder}/${assetType}-raw.webp"
 
-  // Final resize to exact dimensions
-  await exec(`node ${resizeHelper} ${inputPath} ${inputPath} ${width} ${height} ${strategy}`);
-}
+  # Determine strategy based on asset type
+  strategy="contain-centered"  # Default for icons
+  if [[ "$assetType" == *"texture"* || "$assetType" == *"background"* ]]; then
+    strategy="cover-crop"  # For textures and backgrounds - NO stretching
+  fi
+
+  # Apply post-processing steps from config
+  if [[ "$assetType" == *"icon"* || "$assetType" == *"overlay"* || "$assetType" == "logo" ]]; then
+    # 1. Background removal
+    $resizeHelper --remove-white "$inputPath" "${inputPath%.webp}-nobg.png" 240
+
+    # 2. Center in frame
+    $resizeHelper --center "${inputPath%.webp}-nobg.png" "${inputPath%.webp}-centered.png" "$width" 0.1
+
+    # 3. Alpha erosion (remove halos)
+    $resizeHelper --erode "${inputPath%.webp}-centered.png" "${inputPath%.webp}-clean.png" 1
+
+    inputPath="${inputPath%.webp}-clean.png"
+  fi
+
+  # Final resize to exact dimensions
+  $resizeHelper "$inputPath" "${tempFolder}/${assetType}.${format}" "$width" "$height" "$strategy"
+done
 ```
 
 **Resize Strategies:**
@@ -139,7 +154,24 @@ for (const [assetType, assetConfig] of Object.entries(config.assetTypes)) {
 - `cover-crop`: Resize to cover, crop excess from center (textures/backgrounds)
 - `stretch`: Resize to exact dimensions (not recommended, may distort)
 
-### Phase 4: Color Extraction (Vision-Based)
+### Phase 4: Color Extraction
+
+**Option 1: Use extract-colors.py (automated pixel sampling)**
+
+```bash
+# Extract colors from generated assets using Python script
+python .skills/tech-artist-reskin/extract-colors.py \
+  "${tempFolder}/block-texture.jpg" \
+  "${tempFolder}/lock-overlay.png" \
+  "${themeName}"
+
+# This generates palette.json with:
+# - Babylon.js colors (RGB normalized 0-1) from pixel sampling
+# - CSS colors (hex format) derived from sampled colors
+# - Automatic saturation boost for emissive glow
+```
+
+**Option 2: Vision-based extraction (recommended for better results)**
 
 ```typescript
 // Analyze hero asset for base palette
@@ -189,11 +221,16 @@ const palette = {
 await writeFile(`${tempFolder}/palette.json`, JSON.stringify(palette, null, 2));
 ```
 
-**Why vision-based extraction:**
+**Why vision-based extraction is recommended:**
 - Semantic understanding of aesthetically important colors
 - Context-aware decisions (neon blue pops on dark backgrounds)
 - Avoids artifacts and edge cases
-- Simpler implementation than pixel sampling algorithms
+- Better results than blind pixel sampling
+
+**Fallback to extract-colors.py if:**
+- Vision API unavailable or rate limited
+- Quick iteration needed without AI analysis
+- Simple themes with straightforward color palettes
 
 ### Phase 5: Integration
 
@@ -311,11 +348,17 @@ if (bundleSize > maxSize) {
 
 ## Dependencies
 
-- Replicate MCP server (`.mcp.json`)
-- Sharp library for image processing
-- Claude vision API
+**Required:**
+- Replicate MCP server (`.mcp.json` with `REPLICATE_API_TOKEN`)
+- Python 3.8+ with Pillow and numpy
+- Claude vision API (optional, for better palette extraction)
 - Project-specific build tools
-- image-resize-helper.js utility (from tech-artist-generate-asset)
+
+**Python Helper Scripts:**
+- `image-resize-helper.py` (from tech-artist-generate-asset) - Image operations
+- `post-process.py` (from tech-artist-generate-asset) - Complete post-processing pipeline
+- `remove-bg.py` (from tech-artist-generate-asset) - Background removal
+- `extract-colors.py` (from tech-artist-reskin) - Color palette extraction
 
 ## Error Handling
 
@@ -340,16 +383,39 @@ if (bundleSize > maxSize) {
 
 ## Setup for New Project
 
-1. Copy `.asset-gen-config.json` template to project root
-2. Ensure `image-resize-helper.js` is in `.skills/tech-artist-generate-asset/` folder
-3. Customize configuration:
+1. **Copy skill folders** to project (or reference globally)
+   ```bash
+   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.skills/
+   cp -r .skills/tech-artist-reskin /path/to/new-project/.skills/
+   ```
+
+2. **Install Python dependencies**
+   ```bash
+   cd .skills/tech-artist-generate-asset
+   pip install -r requirements.txt
+   cd ../tech-artist-reskin
+   pip install -r requirements.txt
+   ```
+
+3. **Copy config template** to project root
+   ```bash
+   cp .asset-gen-config.json /path/to/new-project/
+   ```
+
+4. **Customize configuration**:
    - Define all asset types needed
    - Set output paths for your project structure
    - Configure theme config file update pattern
    - Define palette structure for your engine/framework
    - Set build constraints and validation rules
-4. Ensure dependencies installed (`npm install sharp`)
-5. Test: `/reskin test "test theme for validation"`
+   - Update script paths to reference Python helpers
+
+5. **Configure Replicate MCP** in project's `.mcp.json`
+
+6. **Test reskin workflow**
+   ```bash
+   /reskin test "test theme for validation"
+   ```
 
 ---
 
