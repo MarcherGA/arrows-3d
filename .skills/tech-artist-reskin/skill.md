@@ -18,15 +18,16 @@ Fully automated game re-skinning orchestrator. Generates all visual assets for a
 
 1. **Load Configuration** - Read `.asset-gen-config.json` for project settings
 2. **Initialization** - Validate inputs, create theme and temp folders
-3. **Asset Generation** - Generate all assets in configured order (hero asset first)
-4. **Post-Processing** - Resize, center, and process all assets using Python helper scripts
-5. **Post-Processing Validation** - Visually verify EACH operation succeeded (NEW)
-6. **Color Extraction** - Use extract-colors.py for intelligent palette extraction
-7. **Integration** - Save assets and palette to theme folder
-8. **Theme Switch** - Update project config file to use new theme
-9. **Cleanup** - Remove temp folder after successful integration
-10. **Build Validation** - Run build, check size, verify success
-11. **Success Report** - Summary with file sizes and next steps
+3. **Asset Generation** - Generate all assets in configured order (hero asset first) with vision critique
+4. **Iteration on Failure** - Retry failed assets with **EXACT SAME PROMPT** (do not tweak or modify)
+5. **Post-Processing** - Resize, center, and process all assets using Python helper scripts
+6. **Post-Processing Validation** - Visually verify EACH operation succeeded (NEW)
+7. **Color Extraction** - Use extract-colors.py for intelligent palette extraction
+8. **Integration** - Save assets and palette to theme folder
+9. **Theme Switch** - Update project config file to use new theme
+10. **Cleanup** - Remove temp folder after successful integration
+11. **Build Validation** - Run build, check size, verify success
+12. **Success Report** - Summary with file sizes and next steps
 
 ## Configuration
 

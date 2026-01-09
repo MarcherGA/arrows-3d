@@ -21,7 +21,7 @@ Generate a single high-quality game asset using AI image generation with automat
 2. **Generate Prompt** - Use template from config with theme variables replaced
 3. **AI Generation** - Call Replicate with configured model and parameters
 4. **Vision Critique** - Validate quality using critique prompt from config
-5. **Iteration** - Retry up to `maxIterations` if critique fails
+5. **Iteration** - Retry up to `maxIterations` if critique fails **using the EXACT SAME PROMPT** (do not tweak or modify)
 6. **Post-Processing** - Apply steps from config (background removal, erosion, compression)
 7. **Post-Processing Validation** - Use vision to verify EACH operation succeeded (NEW)
 8. **Final Validation** - Check size, format, dimensions, transparency
@@ -93,6 +93,15 @@ const prediction = await replicatePredict(assetSpec.model, input);
 const critiquePrompt = assetSpec.critiquePrompt.replace(/{THEME_NAME}/g, themeName);
 const critique = await claudeVision({ image: imageBuffer, prompt: critiquePrompt });
 const passed = critique.includes('PASS');
+
+// CRITICAL: If critique fails, retry with EXACT SAME PROMPT
+// Do NOT tweak, modify, or "improve" the prompt based on critique feedback
+// The AI needs multiple chances with the same seed, not prompt engineering
+if (!passed && currentIteration < maxIterations) {
+  currentIteration++;
+  // Retry generation with EXACT SAME input parameters
+  return await generateAsset(assetType, themeName, themeDescription, currentIteration);
+}
 ```
 
 ### Post-Processing
@@ -154,11 +163,11 @@ const validationResult = await claudeVision({
 
 if (!validationResult.includes('PASS')) {
   // Iteration logic:
-  // - Try different parameters (e.g., less aggressive erosion)
-  // - Re-run the operation
+  // - Try different POST-PROCESSING parameters (e.g., less aggressive erosion)
+  // - Re-run the POST-PROCESSING operation (NOT regeneration from AI)
   // - Count towards maxIterations limit
   console.log(`Post-processing validation FAILED: ${validationResult}`);
-  // Retry with adjusted parameters or flag for manual review
+  // Retry with adjusted POST-PROCESSING parameters or flag for manual review
 }
 ```
 
