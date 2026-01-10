@@ -107,14 +107,25 @@ const input = {
 };
 
 // Create prediction via Replicate MCP
-const prediction = await replicateMCP.create_predictions({
-  model: assetSpec.generation.model,
-  version: assetSpec.generation.parameters.version, // if specified in config
-  input: input
+// IMPORTANT: Use mcp__replicate__create_models_predictions for official models
+// Model: google/nano-banana (official model)
+const prediction = await mcp__replicate__create_models_predictions({
+  model_owner: "google",
+  model_name: "nano-banana",
+  input: {
+    prompt: prompt,
+    aspect_ratio: assetSpec.generation.parameters.aspect_ratio, // e.g., "1:1"
+    output_format: assetSpec.generation.parameters.output_format, // "jpg" or "png"
+    ...(assetSpec.styleReference && heroAssetUrl && {
+      image_prompt: heroAssetUrl,
+      prompt_strength: assetSpec.styleReference.imageStrength
+    })
+  },
+  Prefer: "wait" // Wait up to 60 seconds for completion
 });
 
-// Wait for completion and get output URL
-const outputUrl = prediction.output[0]; // URL to generated image
+// Output URL is in prediction.output
+const outputUrl = prediction.output; // URL to generated image (string)
 ```
 
 ### Download Generated Asset
@@ -216,11 +227,13 @@ if (!passed && currentIteration < maxIterations) {
 // The asset downloaded from Nano Banana is already at a public URL, use that directly
 
 // Step 2: Call rembg model via Replicate MCP
-const bgRemovalPrediction = await replicateMCP.create_predictions({
-  model: "cjwbw/rembg",
+// Use mcp__replicate__create_predictions with version for non-official models
+const bgRemovalPrediction = await mcp__replicate__create_predictions({
+  version: "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
   input: {
     image: rawAssetUrl // URL from Nano Banana output
-  }
+  },
+  Prefer: "wait"
 });
 
 // Step 3: Wait for completion

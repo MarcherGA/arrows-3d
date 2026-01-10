@@ -85,22 +85,80 @@ const config = JSON.parse(await readFile('.asset-gen-config.json'));
 
 ### Phase 2: Asset Generation
 
+**IMPORTANT: Use correct MCP calls for Replicate image generation.**
+
 ```typescript
 const assetTypes = config.workflow.generationOrder;
 const heroAsset = config.workflow.heroAsset;
 
-// Generate hero asset first (defines theme material/atmosphere)
-await generateAsset(heroAsset, themeName, themeDescription);
+// STEP 1: Generate hero asset first (defines theme material/atmosphere)
+const assetSpec = config.assetTypes[heroAsset];
+const prompt = assetSpec.generation.promptTemplate
+  .replace(/{THEME_NAME}/g, themeName)
+  .replace(/{THEME_DESCRIPTION}/g, themeDescription);
 
-// Generate remaining assets (some with style reference to hero asset)
+// Call Replicate via MCP (google/nano-banana is an official model)
+const prediction = await mcp__replicate__create_models_predictions({
+  model_owner: "google",
+  model_name: "nano-banana",
+  input: {
+    prompt: prompt,
+    aspect_ratio: assetSpec.generation.parameters.aspect_ratio,
+    output_format: assetSpec.generation.parameters.output_format
+  },
+  Prefer: "wait"
+});
+
+// Download generated asset with curl
+const outputUrl = prediction.output;
+curl -o temp/${themeName}/${heroAsset}-raw.webp "${outputUrl}"
+
+// Vision critique and iteration...
+
+// STEP 2: Generate remaining assets (loop with similar pattern)
 for (const assetType of assetTypes.filter(a => a !== heroAsset)) {
-  await generateAsset(assetType, themeName, themeDescription);
+  const assetSpec = config.assetTypes[assetType];
+  const prompt = assetSpec.generation.promptTemplate
+    .replace(/{THEME_NAME}/g, themeName)
+    .replace(/{THEME_DESCRIPTION}/g, themeDescription);
+
+  const input = {
+    prompt: prompt,
+    aspect_ratio: assetSpec.generation.parameters.aspect_ratio,
+    output_format: assetSpec.generation.parameters.output_format
+  };
+
+  // Add style reference if specified (must upload hero asset to get public URL)
+  if (assetSpec.generation.styleReference) {
+    // Hero asset URL from first generation (still available at Replicate)
+    input.image_prompt = heroAssetOutputUrl; // Use original output URL
+    input.prompt_strength = assetSpec.generation.styleReference.imageStrength;
+  }
+
+  const prediction = await mcp__replicate__create_models_predictions({
+    model_owner: "google",
+    model_name: "nano-banana",
+    input: input,
+    Prefer: "wait"
+  });
+
+  // Download with curl
+  const outputUrl = prediction.output;
+  curl -o temp/${themeName}/${assetType}-raw.webp "${outputUrl}"
+
+  // Vision critique and iteration...
 }
 ```
 
+**Key MCP Call Details:**
+- **Official models** (google/nano-banana): Use `mcp__replicate__create_models_predictions` with `model_owner` and `model_name`
+- **Style reference**: Use `image_prompt` (not `image_input`) and `prompt_strength` parameters
+- **Parameters**: `aspect_ratio` (e.g., "1:1"), `output_format` ("jpg" or "png")
+- **Prefer: "wait"**: Waits up to 60 seconds for completion
+
 **Style Reference Strategy:**
 - Hero asset (e.g., block-texture): Text-only generation, no style reference
-- Background & overlays: Use hero asset as style reference (prompt_strength: 0.7)
+- Background & overlays: Use hero asset as `image_prompt` with `prompt_strength: 0.7`
 - Icons: Text-only generation (simplicity required)
 
 ### Phase 3: Post-Processing
@@ -116,12 +174,18 @@ The `post-process.py` script now includes integrated fallback - if running stand
 ```bash
 # STEP 1: Claude Code handles background removal via MCP (for icons/logos/overlays)
 for assetType in icons; do
-  # Claude Code calls Replicate rembg:
-  mcp__replicate__create_predictions({
+  # Claude Code calls Replicate rembg via MCP
+  # Note: Use mcp__replicate__create_predictions with version for non-official models
+  const bgPrediction = await mcp__replicate__create_predictions({
     version: "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
-    input: { image: "${tempFolder}/${assetType}-raw.webp" }
-  })
-  # Save result to ${tempFolder}/${assetType}-nobg.png
+    input: {
+      image: getPublicUrl(`${tempFolder}/${assetType}-raw.webp`)
+    },
+    Prefer: "wait"
+  });
+
+  # Download result with curl
+  curl -o "${tempFolder}/${assetType}-nobg.png" "${bgPrediction.output}"
 done
 
 # STEP 2: Post-process all assets (resize, alpha erosion, compression)
