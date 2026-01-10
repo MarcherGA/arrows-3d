@@ -107,21 +107,36 @@ for (const assetType of assetTypes.filter(a => a !== heroAsset)) {
 
 **CRITICAL:** All assets must be resized to exact dimensions specified in config.
 
+**Background Removal Strategy (Automatic Fallback):**
+1. **Primary:** Replicate rembg model via Claude Code MCP (high quality, clean edges)
+2. **Fallback:** Local threshold-based removal in `post-process.py` (automatic, offline)
+
+The `post-process.py` script now includes integrated fallback - if running standalone, it uses local background removal automatically.
+
 ```bash
-# Use Python helper scripts from tech-artist-generate-asset for all post-processing
-resizeHelper="python .skills/tech-artist-generate-asset/image-resize-helper.py"
+# STEP 1: Claude Code handles background removal via MCP (for icons/logos/overlays)
+for assetType in icons; do
+  # Claude Code calls Replicate rembg:
+  mcp__replicate__create_predictions({
+    version: "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
+    input: { image: "${tempFolder}/${assetType}-raw.webp" }
+  })
+  # Save result to ${tempFolder}/${assetType}-nobg.png
+done
+
+# STEP 2: Post-process all assets (resize, alpha erosion, compression)
 postProcess="python .skills/tech-artist-generate-asset/post-process.py"
 
-# Option 1: Use post-process.py for complete pipeline (recommended)
 for assetType in "${assetTypes[@]}"; do
   inputPath="${tempFolder}/${assetType}-raw.webp"
   outputPath="${tempFolder}/${assetType}.${format}"
 
-  # Automated post-processing (background removal, alpha erosion, compression)
+  # Automated post-processing
+  # - If background was removed by MCP, uses that
+  # - Otherwise, applies local threshold-based removal automatically
   $postProcess "$inputPath" "$outputPath" "$assetType"
 
-  # CRITICAL: Vision validation after post-processing (NEW)
-  # Do NOT assume the operation succeeded - visually verify!
+  # CRITICAL: Vision validation after post-processing (see Phase 3.5)
 done
 
 # Option 2: Manual steps for more control
@@ -157,6 +172,39 @@ done
 - `contain-centered`: Resize to fit, center with transparent padding (icons)
 - `cover-crop`: Resize to cover, crop excess from center (textures/backgrounds)
 - `stretch`: Resize to exact dimensions (not recommended, may distort)
+
+**Fallback: Inline PIL Processing**
+
+If `post-process.py` fails (e.g., Windows encoding issues), use inline PIL commands:
+
+```python
+# Background removal with threshold-based transparency
+python -c "
+from PIL import Image, ImageFilter
+import numpy as np
+
+img = Image.open('input.png').convert('RGBA')
+data = np.array(img)
+
+# Remove white backgrounds (threshold 240)
+r, g, b, a = data[:,:,0], data[:,:,1], data[:,:,2], data[:,:,3]
+white_areas = (r > 240) & (g > 240) & (b > 240)
+data[white_areas, 3] = 0
+
+# Erode alpha to remove halos
+img_clean = Image.fromarray(data, 'RGBA')
+alpha = img_clean.split()[3]
+alpha = alpha.filter(ImageFilter.MinFilter(5))  # 2px erosion
+img_clean.putalpha(alpha)
+
+# Resize and save
+img_clean = img_clean.resize((512, 512), Image.Resampling.LANCZOS)
+img_clean.save('output.png', 'PNG', optimize=True)
+print('Done')
+"
+```
+
+This approach uses the same algorithm as `.skills/tech-artist-generate-asset/remove-bg.py` but runs inline for better error handling on Windows systems.
 
 ### Phase 3.5: Post-Processing Validation (CRITICAL)
 

@@ -125,7 +125,7 @@
         {
           "type": "remove-background",
           "method": "replicate-model",
-          "model": "cjwbw/rembg"
+          "model": "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003"
         },
         {
           "type": "threshold",
@@ -246,7 +246,7 @@
         {
           "type": "remove-background",
           "method": "replicate-model",
-          "model": "cjwbw/rembg"
+          "model": "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003"
         },
         {
           "type": "remove-white",
@@ -307,7 +307,7 @@
         {
           "type": "remove-background",
           "method": "replicate-model",
-          "model": "cjwbw/rembg"
+          "model": "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003"
         },
         {
           "type": "erode-alpha",
@@ -373,7 +373,7 @@
         {
           "type": "remove-background",
           "method": "replicate-model",
-          "model": "cjwbw/rembg"
+          "model": "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003"
         },
         {
           "type": "erode-alpha",

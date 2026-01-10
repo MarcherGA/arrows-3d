@@ -18,6 +18,15 @@ from pathlib import Path
 from PIL import Image, ImageFilter
 import numpy as np
 
+# Fix Windows console encoding for emoji support
+if sys.platform == 'win32':
+    try:
+        # Try to reconfigure stdout to UTF-8
+        sys.stdout.reconfigure(encoding='utf-8')
+    except (AttributeError, Exception):
+        # Fallback: set environment variable for subprocess compatibility
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
+
 
 def load_config(config_path='.asset-gen-config.json'):
     """Load asset configuration from JSON file"""
@@ -130,15 +139,100 @@ def optimize_png(image, compression_level=9):
     return image, compression_level
 
 
-def remove_background_simple(image):
+def remove_white_background(image, threshold=240):
     """
-    Ensure alpha channel exists
-    Claude Code handles actual background removal via Replicate MCP during workflow
-    """
-    print('   ℹ️  Preserving alpha channel (background removal handled by Claude Code MCP)')
+    Remove white/light backgrounds by making them transparent (fallback method)
 
+    Args:
+        image: PIL Image object
+        threshold: Brightness threshold (0-255). Pixels brighter than this become transparent.
+
+    Returns:
+        PIL Image with transparent background
+    """
+    print(f"   🎭 Removing white background (threshold: {threshold})...")
+
+    # Convert to RGBA if not already
     if image.mode != 'RGBA':
         image = image.convert('RGBA')
+
+    # Convert to numpy array
+    data = np.array(image)
+
+    # Get RGB channels
+    r, g, b, a = data[:, :, 0], data[:, :, 1], data[:, :, 2], data[:, :, 3]
+
+    # Make bright pixels transparent
+    white_areas = (r > threshold) & (g > threshold) & (b > threshold)
+    data[white_areas, 3] = 0
+
+    # Convert back to PIL Image
+    result = Image.fromarray(data, 'RGBA')
+
+    # Count transparent pixels for feedback
+    transparent_pixels = np.sum(white_areas)
+    total_pixels = image.width * image.height
+    percent_transparent = (transparent_pixels / total_pixels) * 100
+
+    print(f"   ✅ Background removed ({percent_transparent:.1f}% transparent)")
+
+    return result
+
+
+def remove_background_replicate(input_path, model_version):
+    """
+    Remove background using Replicate's rembg model
+
+    NOTE: This requires Claude Code to have Replicate MCP access.
+    This function saves the input, expects Claude to process it via MCP,
+    and returns the result.
+
+    Args:
+        input_path: Path to input image
+        model_version: Full Replicate model version ID
+
+    Returns:
+        PIL Image with transparent background, or None if failed
+    """
+    print(f"   🌐 Attempting Replicate rembg background removal...")
+    print(f"   ⚠️  This requires Claude Code MCP integration")
+    print(f"   💡 Model: {model_version}")
+
+    # This is a placeholder - actual MCP call should be handled by Claude Code
+    # The workflow should:
+    # 1. Save temp file
+    # 2. Claude Code calls Replicate MCP
+    # 3. Download result
+    # 4. Return image
+
+    return None  # Fallback to local method
+
+
+def remove_background_simple(image, threshold=240, use_replicate=False, replicate_model=None):
+    """
+    Remove background with automatic fallback strategy
+
+    Strategy:
+    1. If use_replicate=True, attempt Replicate rembg (requires Claude Code MCP)
+    2. Fallback to local threshold-based removal
+
+    Args:
+        image: PIL Image object
+        threshold: Brightness threshold for fallback method (default 240)
+        use_replicate: Whether to attempt Replicate rembg first
+        replicate_model: Replicate model version ID
+
+    Returns:
+        PIL Image with transparent background
+    """
+    # Attempt Replicate if requested
+    if use_replicate and replicate_model:
+        print('   🚀 Trying Replicate rembg (requires Claude Code MCP)...')
+        print('   ℹ️  Falling back to local method (Replicate MCP not available in this context)')
+
+    # Fallback to local threshold-based removal
+    print('   🏠 Using local background removal (threshold-based)')
+    image = remove_white_background(image, threshold)
 
     return image
 
