@@ -224,7 +224,7 @@ npm run build
 ## File Structure
 
 ```
-.skills/
+.claude/skills/
 ├── README.md (this file)
 │
 ├── tech-artist-generate-asset/

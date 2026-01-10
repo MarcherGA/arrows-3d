@@ -118,7 +118,7 @@ This skill is referenced in `.asset-gen-config.json`:
 {
   "dependencies": {
     "colorExtractionScript": {
-      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py",
+      "scriptPath": ".claude/skills/tech-artist-reskin/extract-colors.py",
       "fallback": "Use vision-based extraction"
     }
   }

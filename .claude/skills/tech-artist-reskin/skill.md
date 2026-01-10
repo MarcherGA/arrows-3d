@@ -43,7 +43,7 @@ Uses `.asset-gen-config.json` from project root:
     "cleanupTempFolder": true
   },
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py",
+    "resizeHelper": ".claude/skills/tech-artist-generate-asset/image-resize-helper.py",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
@@ -52,7 +52,7 @@ Uses `.asset-gen-config.json` from project root:
   },
   "dependencies": {
     "colorExtractionScript": {
-      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py",
+      "scriptPath": ".claude/skills/tech-artist-reskin/extract-colors.py",
       "fallback": "Use vision-based extraction"
     }
   },
@@ -189,7 +189,7 @@ for assetType in icons; do
 done
 
 # STEP 2: Post-process all assets (resize, alpha erosion, compression)
-postProcess="python .skills/tech-artist-generate-asset/post-process.py"
+postProcess="python .claude/skills/tech-artist-generate-asset/post-process.py"
 
 for assetType in "${assetTypes[@]}"; do
   inputPath="${tempFolder}/${assetType}-raw.webp"
@@ -268,7 +268,7 @@ print('Done')
 "
 ```
 
-This approach uses the same algorithm as `.skills/tech-artist-generate-asset/remove-bg.py` but runs inline for better error handling on Windows systems.
+This approach uses the same algorithm as `.claude/skills/tech-artist-generate-asset/remove-bg.py` but runs inline for better error handling on Windows systems.
 
 ### Phase 3.5: Post-Processing Validation (CRITICAL)
 
@@ -342,7 +342,7 @@ for (const assetType of assetTypes) {
 
 ```bash
 # Extract colors from generated assets using Python script
-python .skills/tech-artist-reskin/extract-colors.py \
+python .claude/skills/tech-artist-reskin/extract-colors.py \
   "${tempFolder}/block-texture.jpg" \
   "${tempFolder}/lock-overlay.png" \
   "${themeName}"
@@ -567,8 +567,8 @@ if (bundleSize > maxSize) {
 
 1. **Copy skill folders** to project (or reference globally)
    ```bash
-   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.skills/
-   cp -r .skills/tech-artist-reskin /path/to/new-project/.skills/
+   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.claude/skills/
+   cp -r .skills/tech-artist-reskin /path/to/new-project/.claude/skills/
    ```
 
 2. **Install Python dependencies**

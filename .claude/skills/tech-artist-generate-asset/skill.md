@@ -259,21 +259,21 @@ curl -o "temp/cyberpunk/arrow-icon-nobg.png" "<transparent_asset_url>"
 
 #### Other Post-Processing Steps
 
-Use Python helper scripts from `.skills/tech-artist-generate-asset/`:
+Use Python helper scripts from `.claude/skills/tech-artist-generate-asset/`:
 
 ```bash
 # 1. Alpha erosion (remove white halos after background removal)
-python .skills/tech-artist-generate-asset/image-resize-helper.py \
+python .claude/skills/tech-artist-generate-asset/image-resize-helper.py \
   --erode temp/theme/asset-nobg.png temp/theme/asset-eroded.png 1
 
 # 2. Center and resize
-python .skills/tech-artist-generate-asset/image-resize-helper.py \
+python .claude/skills/tech-artist-generate-asset/image-resize-helper.py \
   temp/theme/asset-eroded.png \
   temp/theme/asset-centered.png \
   256 256 contain-centered
 
 # 3. Compress PNG
-python .skills/tech-artist-generate-asset/image-resize-helper.py \
+python .claude/skills/tech-artist-generate-asset/image-resize-helper.py \
   temp/theme/asset-centered.png \
   output/theme/asset.png \
   256 256 contain-centered
@@ -281,7 +281,7 @@ python .skills/tech-artist-generate-asset/image-resize-helper.py \
 
 **Alternative: Use post-process.py wrapper (after manual background removal)**
 ```bash
-python .skills/tech-artist-generate-asset/post-process.py \
+python .claude/skills/tech-artist-generate-asset/post-process.py \
   temp/theme/asset-nobg.png \
   output/theme/asset.png \
   arrow-icon
@@ -422,7 +422,7 @@ Claude Code will handle background removal by calling Replicate's `cjwbw/rembg` 
 
 1. **Copy skill folder** to project (or reference globally)
    ```bash
-   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.skills/
+   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.claude/skills/
    ```
 
 2. **Install Python dependencies**

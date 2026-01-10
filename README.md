@@ -33,7 +33,7 @@ All components are designed to work with any game project via configuration:
 npm install
 
 # 2. Install Python dependencies
-cd .skills/tech-artist-generate-asset
+cd .claude/skills/tech-artist-generate-asset
 pip install -r requirements.txt
 cd ../tech-artist-reskin
 pip install -r requirements.txt
@@ -50,7 +50,7 @@ arrows-3d/
 ├── .asset-gen-config.json          # Asset generation configuration
 ├── .mcp.json                        # Replicate MCP server config
 ├── CLAUDE.md                        # Project documentation for Claude Code
-├── .skills/
+├── .claude/skills/
 │   ├── tech-artist-generate-asset/ # Single asset generation workflow
 │   │   ├── skill.md
 │   │   ├── post-process.py

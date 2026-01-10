@@ -122,7 +122,7 @@ Use Claude vision with prompts from `palette.extractionStrategy` in config:
 
 ### Fallback: Pixel Sampling
 
-If vision fails, use `.skills/tech-artist-reskin/extract-colors.py` for basic color averaging.
+If vision fails, use `.claude/skills/tech-artist-reskin/extract-colors.py` for basic color averaging.
 
 ---
 

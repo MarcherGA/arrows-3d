@@ -18,7 +18,7 @@ The tech artist skills are now **project-agnostic** and use Python instead of No
 
 ### 1. Install Python Dependencies
 
-From the `.skills` directory, run:
+From the `.claude/skills` directory, run:
 
 ```bash
 pip install -r requirements.txt
@@ -40,13 +40,13 @@ Test each script:
 
 ```bash
 # Test image resize helper
-python .skills/tech-artist-generate-asset/image-resize-helper.py
+python .claude/skills/tech-artist-generate-asset/image-resize-helper.py
 
 # Test post-processing
-python .skills/tech-artist-generate-asset/post-process.py
+python .claude/skills/tech-artist-generate-asset/post-process.py
 
 # Test color extraction
-python .skills/tech-artist-reskin/extract-colors.py
+python .claude/skills/tech-artist-reskin/extract-colors.py
 ```
 
 You should see usage instructions for each script.
@@ -133,8 +133,8 @@ pip3 install Pillow
 Make scripts executable:
 
 ```bash
-chmod +x .skills/tech-artist-generate-asset/*.py
-chmod +x .skills/tech-artist-reskin/*.py
+chmod +x .claude/skills/tech-artist-generate-asset/*.py
+chmod +x .claude/skills/tech-artist-reskin/*.py
 ```
 
 Then run with `./script.py` instead of `python script.py`.
@@ -146,17 +146,17 @@ The [.asset-gen-config.json](../.asset-gen-config.json) now references Python sc
 ```json
 {
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py"
+    "resizeHelper": ".claude/skills/tech-artist-generate-asset/image-resize-helper.py"
   },
   "dependencies": {
     "postProcessingScript": {
-      "scriptPath": ".skills/tech-artist-generate-asset/post-process.py"
+      "scriptPath": ".claude/skills/tech-artist-generate-asset/post-process.py"
     },
     "resizeHelper": {
-      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.py"
+      "scriptPath": ".claude/skills/tech-artist-generate-asset/image-resize-helper.py"
     },
     "colorExtractionScript": {
-      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py"
+      "scriptPath": ".claude/skills/tech-artist-reskin/extract-colors.py"
     }
   }
 }
@@ -168,9 +168,9 @@ AI agents will automatically use Python scripts when processing assets.
 
 To use these skills in a new project:
 
-1. Copy the `.skills` folder to the new project
+1. Copy the `.claude/skills` folder to the new project
 2. Copy `.asset-gen-config.json` and customize it
-3. Install Python dependencies: `pip install -r .skills/requirements.txt`
+3. Install Python dependencies: `pip install -r .claude/skills/requirements.txt`
 4. Update paths in `.asset-gen-config.json` to match new project structure
 
 That's it! No Node.js dependencies needed in the target project.

@@ -136,14 +136,14 @@ This skill is referenced in `.asset-gen-config.json`:
 ```json
 {
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py"
+    "resizeHelper": ".claude/skills/tech-artist-generate-asset/image-resize-helper.py"
   },
   "dependencies": {
     "postProcessingScript": {
-      "scriptPath": ".skills/tech-artist-generate-asset/post-process.py"
+      "scriptPath": ".claude/skills/tech-artist-generate-asset/post-process.py"
     },
     "resizeHelper": {
-      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.py"
+      "scriptPath": ".claude/skills/tech-artist-generate-asset/image-resize-helper.py"
     }
   }
 }
