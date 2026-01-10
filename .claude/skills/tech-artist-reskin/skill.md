@@ -567,13 +567,13 @@ if (bundleSize > maxSize) {
 
 1. **Copy skill folders** to project (or reference globally)
    ```bash
-   cp -r .skills/tech-artist-generate-asset /path/to/new-project/.claude/skills/
-   cp -r .skills/tech-artist-reskin /path/to/new-project/.claude/skills/
+   cp -r .claude/skills/tech-artist-generate-asset /path/to/new-project/.claude/skills/
+   cp -r .claude/skills/tech-artist-reskin /path/to/new-project/.claude/skills/
    ```
 
 2. **Install Python dependencies**
    ```bash
-   cd .skills/tech-artist-generate-asset
+   cd .claude/skills/tech-artist-generate-asset
    pip install -r requirements.txt
    cd ../tech-artist-reskin
    pip install -r requirements.txt

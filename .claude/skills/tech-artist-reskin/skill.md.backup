@@ -262,7 +262,7 @@ Instead of blind pixel sampling, use Claude's vision API to make aesthetically-i
 Use the helper script `extract-colors.js` located in this skill's folder:
 
 ```bash
-node .skills/tech-artist-reskin/extract-colors.js \
+node .claude/skills/tech-artist-reskin/extract-colors.js \
   temp/cyberpunk/block-texture.jpg \
   temp/cyberpunk/lock-overlay.png \
   cyberpunk
