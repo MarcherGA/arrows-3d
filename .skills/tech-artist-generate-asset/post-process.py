@@ -3,8 +3,9 @@
 Post-Processing Script for Generated Assets
 
 Handles background removal, alpha erosion, and compression for generated images.
+**Project-agnostic:** Reads asset configuration from .asset-gen-config.json
 
-Usage: python post-process.py <inputPath> <outputPath> <assetType>
+Usage: python post-process.py <inputPath> <outputPath> <assetType> [configPath]
 
 Dependencies:
     pip install Pillow numpy
@@ -12,9 +13,69 @@ Dependencies:
 
 import sys
 import os
+import json
 from pathlib import Path
 from PIL import Image, ImageFilter
 import numpy as np
+
+
+def load_config(config_path='.asset-gen-config.json'):
+    """Load asset configuration from JSON file"""
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f'⚠️  Config file not found: {config_path}')
+        print('   Using default fallback values')
+        return None
+    except json.JSONDecodeError as e:
+        print(f'⚠️  Invalid JSON in config file: {e}')
+        print('   Using default fallback values')
+        return None
+
+
+def parse_size_target(size_str):
+    """Convert size target string (e.g. '150KB') to bytes"""
+    if not size_str:
+        return None
+
+    size_str = str(size_str).upper().strip()
+    if size_str.endswith('KB'):
+        return int(size_str[:-2]) * 1024
+    elif size_str.endswith('MB'):
+        return int(size_str[:-2]) * 1024 * 1024
+    else:
+        return int(size_str)
+
+
+def get_asset_config(config, asset_type):
+    """Get configuration for specific asset type"""
+    if not config or 'assetTypes' not in config:
+        return {
+            'format': 'PNG',
+            'sizeTarget': '50KB',
+            'needsTransparency': True
+        }
+
+    asset_spec = config['assetTypes'].get(asset_type, {})
+
+    # Extract from restructured config (v1.2.0+)
+    if 'output' in asset_spec:
+        format_type = asset_spec['output'].get('format', 'PNG')
+        size_target = asset_spec['output'].get('sizeTarget', '50KB')
+    else:
+        # Fallback for old config structure
+        format_type = asset_spec.get('format', 'PNG')
+        size_target = asset_spec.get('sizeTarget', '50KB')
+
+    # Determine if transparency is needed based on format
+    needs_transparency = format_type == 'PNG'
+
+    return {
+        'format': format_type,
+        'sizeTarget': size_target,
+        'needsTransparency': needs_transparency
+    }
 
 
 def erode_alpha_channel(image, pixels=1):
@@ -72,10 +133,9 @@ def optimize_png(image, compression_level=9):
 def remove_background_simple(image):
     """
     Ensure alpha channel exists
-    For production, use Replicate's rembg model instead
+    Claude Code handles actual background removal via Replicate MCP during workflow
     """
-    print('   ⚠️  Note: Using simple alpha channel preservation.')
-    print('   💡 For production, use Replicate rembg model via MCP')
+    print('   ℹ️  Preserving alpha channel (background removal handled by Claude Code MCP)')
 
     if image.mode != 'RGBA':
         image = image.convert('RGBA')
@@ -83,7 +143,7 @@ def remove_background_simple(image):
     return image
 
 
-def post_process_asset(input_path, output_path, asset_type):
+def post_process_asset(input_path, output_path, asset_type, config=None):
     """Main post-processing pipeline"""
     print(f"\n🔧 Post-processing {asset_type}...")
 
@@ -92,40 +152,32 @@ def post_process_asset(input_path, output_path, asset_type):
     input_size = os.path.getsize(input_path)
     print(f"   📥 Input size: {round(input_size / 1024)}KB")
 
-    # Determine processing steps based on asset type
-    needs_transparency = asset_type in [
-        'arrow-icon',
-        'lock-overlay',
-        'currency-icon',
-        'piggy-bank',
-        'win-icon',
-        'logo'
-    ]
+    # Get asset configuration
+    asset_config = get_asset_config(config, asset_type)
+    needs_transparency = asset_config['needsTransparency']
+    size_target_str = asset_config['sizeTarget']
+    size_target = parse_size_target(size_target_str)
+
+    print(f"   📋 Format: {asset_config['format']}, Target: {size_target_str}")
 
     if needs_transparency:
-        # Step 1: Remove background (use Replicate rembg in production)
+        # PNG assets with transparency
         print('   🎭 Processing transparency...')
         image = remove_background_simple(image)
 
-        # Step 2: Erode alpha to remove white halos
+        # Erode alpha to remove white halos
         image = erode_alpha_channel(image, 1)
 
-        # Step 3: Optimize PNG
+        # Optimize PNG
         image, compression = optimize_png(image, 9)
 
         # Save as PNG
         image.save(output_path, 'PNG', optimize=True, compress_level=compression)
 
     else:
-        # JPEG assets (block-texture, background)
-        size_targets = {
-            'block-texture': 150 * 1024,
-            'background': 100 * 1024
-        }
-        target_size = size_targets.get(asset_type, 100 * 1024)
-
-        if input_size > target_size:
-            print(f"   ⚠️  Input exceeds target size ({round(target_size / 1024)}KB), using aggressive compression")
+        # JPEG assets
+        if size_target and input_size > size_target:
+            print(f"   ⚠️  Input exceeds target size ({size_target_str}), using aggressive compression")
             image, quality = compress_jpeg(image, 70)
         else:
             image, quality = compress_jpeg(image, 85)
@@ -139,20 +191,8 @@ def post_process_asset(input_path, output_path, asset_type):
     print(f"   📊 Size reduction: {round((1 - output_size / input_size) * 100)}%")
 
     # Validate file size
-    size_targets = {
-        'block-texture': 150 * 1024,
-        'background': 100 * 1024,
-        'lock-overlay': 50 * 1024,
-        'arrow-icon': 20 * 1024,
-        'currency-icon': 20 * 1024,
-        'piggy-bank': 20 * 1024,
-        'win-icon': 20 * 1024,
-        'logo': 20 * 1024
-    }
-
-    target_size = size_targets.get(asset_type, 50 * 1024)
-    if output_size > target_size:
-        print(f"   ⚠️  WARNING: Output size exceeds target ({round(target_size / 1024)}KB)")
+    if size_target and output_size > size_target:
+        print(f"   ⚠️  WARNING: Output size exceeds target ({size_target_str})")
     else:
         print("   ✅ Size within budget!")
 
@@ -161,20 +201,32 @@ def post_process_asset(input_path, output_path, asset_type):
 
 def main():
     """Main execution"""
-    if len(sys.argv) != 4:
-        print('❌ Usage: python post-process.py <inputPath> <outputPath> <assetType>')
-        print('   Asset types: block-texture, arrow-icon, background, lock-overlay, currency-icon, piggy-bank, win-icon, logo')
+    if len(sys.argv) < 4:
+        print('❌ Usage: python post-process.py <inputPath> <outputPath> <assetType> [configPath]')
+        print('   ')
+        print('   configPath: Optional path to .asset-gen-config.json (default: .asset-gen-config.json)')
+        print('   ')
+        print('   The script will read asset specifications from the config file.')
         sys.exit(1)
 
     input_path = sys.argv[1]
     output_path = sys.argv[2]
     asset_type = sys.argv[3]
+    config_path = sys.argv[4] if len(sys.argv) > 4 else '.asset-gen-config.json'
+
+    # Load configuration
+    config = load_config(config_path)
+
+    if not config:
+        print('⚠️  Running without config file - using defaults')
 
     try:
-        post_process_asset(input_path, output_path, asset_type)
+        post_process_asset(input_path, output_path, asset_type, config)
         print('\n✅ Post-processing complete!')
     except Exception as error:
         print(f'\n❌ Post-processing failed: {error}')
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "project": {
     "name": "Arrow Block 3D",
     "description": "3D puzzle game with themeable visual assets"
@@ -20,7 +20,6 @@
     "notes": "HTML5 playable ad with assets inlined as Base64"
   },
   "postProcessing": {
-    "resizeHelper": ".skills/tech-artist-generate-asset/image-resize-helper.py",
     "resizeStrategy": {
       "icons": "contain-centered",
       "textures": "cover-crop",
@@ -31,209 +30,375 @@
     "_comment": "Reference assets used as image_prompt for style transfer. Paths are relative to project root.",
     "reference-logo": "public/assets/wood/logo.png"
   },
+  "modelLimitations": {
+    "google/nano-banana": {
+      "aspectRatios": ["1:1", "9:16", "16:9", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "21:9"],
+      "customDimensions": false,
+      "formats": ["jpg", "png"],
+      "transparency": true,
+      "notes": "Can only request preset aspect ratios. Post-processing resize required for exact dimensions.",
+      "performance": {
+        "avgGenerationTime": "10-15 seconds",
+        "costPerImage": "$0.003"
+      }
+    }
+  },
   "assetTypes": {
-    "_comment": "Model-specific parameters: Nano Banana (aspect_ratio presets only: 1:1, 9:16, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 16:9, 21:9, etc. + output_format: jpg/png, no custom width/height or resolution parameter). Post-processing resize handles final dimensions.",
     "block-texture": {
-      "filename": "block-texture.jpg",
-      "dimensions": { "width": 512, "height": 512 },
-      "format": "JPEG",
-      "sizeTarget": "150KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "1:1",
-        "output_format": "jpg"
+      "output": {
+        "filename": "block-texture.jpg",
+        "dimensions": { "width": 512, "height": 512 },
+        "format": "JPEG",
+        "sizeTarget": "150KB"
       },
-      "critical": "SEAMLESS TILEABLE + UNIFORM SCALE (wraps on all 4 edges without visible seams, looks good when stretched non-uniformly)",
-      "usage": "Applied as material to all block faces in the 3D scene - may be stretched on non-square faces",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "1:1",
+          "output_format": "jpg"
+        },
+        "promptTemplate": "Create a seamless, tileable texture for a 3D cube surface.\n\nREQUIREMENTS:\n- Perfectly seamless edges (wraps on all sides)\n- UNIFORM pattern that looks good even when stretched non-uniformly\n- Avoid directional patterns or elements that look distorted when scaled\n- Flat, simple style (minimal details)\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges, photorealistic, complex details, busy patterns, directional elements, perspective lines",
+        "styleReference": null
+      },
+      "validation": {
+        "critical": [
+          "SEAMLESS TILEABLE on all 4 edges without visible seams",
+          "UNIFORM SCALE - looks good when stretched non-uniformly"
+        ],
+        "visionCritiquePrompt": "Analyze this texture that will be used on 3D cube faces:\n1. Are the edges seamless? (Check all 4 edges - can it tile without visible seams?)\n2. Does it match the \"{THEME_NAME}\" theme aesthetic?\n3. Is there appropriate visual interest without being overwhelming?\n4. Would this look acceptable if stretched non-uniformly (e.g., 1:2 ratio)? Avoid strong directional patterns.\n5. Are there any obvious artifacts, text, or watermarks?\n\nRespond with PASS or FAIL and specific reasons.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact"
+        }
+      },
       "postProcessing": [
-        "Resize to exact dimensions (cover-crop)",
-        "JPEG compression (quality 85%)"
+        {
+          "type": "resize",
+          "strategy": "cover-crop",
+          "dimensions": [512, 512]
+        },
+        {
+          "type": "compress",
+          "format": "jpg",
+          "quality": 85,
+          "fallbackQuality": 70
+        }
       ],
-      "styleReference": null,
-      "promptTemplate": "Create a seamless, tileable texture for a 3D cube surface.\n\nREQUIREMENTS:\n- Perfectly seamless edges (wraps on all sides)\n- UNIFORM pattern that looks good even when stretched non-uniformly\n- Avoid directional patterns or elements that look distorted when scaled\n- Flat, simple style (not overly detailed)\n- Square 512x512\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: borders, frames, text, watermarks, seams, edges, photorealistic, complex details, busy patterns, directional elements, perspective lines",
-      "critiquePrompt": "Analyze this texture that will be used on 3D cube faces:\n1. Are the edges seamless? (Check all 4 edges - can it tile without visible seams?)\n2. Does it match the \"{THEME_NAME}\" theme aesthetic?\n3. Is there appropriate visual interest without being overwhelming?\n4. Would this look acceptable if stretched non-uniformly (e.g., 1:2 ratio)? Avoid strong directional patterns.\n5. Are there any obvious artifacts, text, or watermarks?\n\nRespond with PASS or FAIL and specific reasons.",
-      "qualityChecklist": [
-        "All 4 edges are seamless (test by tiling 2x2)",
-        "Visual interest without overwhelming detail",
-        "Works when viewed from multiple angles",
-        "Looks acceptable when stretched non-uniformly",
-        "No strong directional patterns that distort when scaled",
-        "Appropriate contrast for arrow visibility",
-        "Matches theme aesthetic"
-      ]
+      "metadata": {
+        "usage": "Applied as material to all block faces in 3D scene",
+        "notes": "May be stretched non-uniformly on rectangular faces"
+      }
     },
     "arrow-icon": {
-      "filename": "arrow-icon.png",
-      "dimensions": { "width": 256, "height": 256 },
-      "format": "PNG",
-      "sizeTarget": "20KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "1:1",
-        "output_format": "png"
+      "output": {
+        "filename": "arrow-icon.png",
+        "dimensions": { "width": 256, "height": 256 },
+        "format": "PNG",
+        "sizeTarget": "20KB"
       },
-      "critical": "Points upward, transparent background, simple flat design, CENTERED in frame, SOLID BLACK for engine tinting",
-      "usage": "Displayed on block faces to indicate pull direction (tinted by Babylon.js with arrowColor from palette)",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "1:1",
+          "output_format": "png"
+        },
+        "promptTemplate": "{THEME_NAME} styled arrow icon pointing straight UP. Simple geometric shape. Solid BLACK silhouette. Sharp edges. Flat vector graphic. Minimal design. White background. No colors, no gradients, pure black shape only.",
+        "styleReference": null
+      },
+      "validation": {
+        "critical": [
+          "Points upward (will be rotated for other directions)",
+          "SOLID BLACK for clean engine tinting",
+          "CENTERED in frame with equal padding",
+          "Flat 2D die-cut sticker style (no 3D, no grounding)"
+        ],
+        "visionCritiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Is it a SOLID BLACK SHAPE (flat, no gradients, no outlines)?\n5. Is it MINIMAL and simple (no environmental elements, no 3D effects)?\n6. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO gradients or shading effects?\n8. Does it look like a flat die-cut sticker (2D, not 3D)?\n9. Is it simple and readable at small sizes?\n10. CRITICAL: Check for 'grounding' - does the icon have a shadow underneath, platform, or look like it's sitting on a surface? If YES, this is a FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact",
+          "transparency": true
+        }
+      },
       "postProcessing": [
-        "Background removal (cjwbw/rembg)",
-        "Threshold to pure black (convert non-transparent to #000000 for clean tinting)",
-        "Alpha erosion (1px)",
-        "Center in frame (contain-centered)",
-        "Resize to exact dimensions",
-        "PNG compression (level 9)"
+        {
+          "type": "remove-background",
+          "method": "replicate-model",
+          "model": "cjwbw/rembg"
+        },
+        {
+          "type": "threshold",
+          "target": "black",
+          "color": "#000000",
+          "preserveAlpha": true
+        },
+        {
+          "type": "erode-alpha",
+          "pixels": 1
+        },
+        {
+          "type": "center",
+          "strategy": "contain-centered",
+          "padding": 0
+        },
+        {
+          "type": "resize",
+          "dimensions": [256, 256],
+          "method": "LANCZOS"
+        },
+        {
+          "type": "compress",
+          "format": "png",
+          "level": 9
+        }
       ],
-      "styleReference": null,
-      "promptTemplate": "{THEME_NAME} styled arrow icon pointing straight UP. Simple geometric shape. Solid BLACK silhouette. Sharp edges. Flat vector graphic. Minimal design. White background. No colors, no gradients, pure black shape only.",
-      "critiquePrompt": "Analyze this arrow icon for a game:\n1. Does it clearly point UPWARD?\n2. Is the arrow CENTERED in the frame (equal padding on all sides)?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Is it a SOLID BLACK SHAPE (flat, no gradients, no outlines)?\n5. Is it MINIMAL and simple (no environmental elements, no 3D effects)?\n6. Are there NO shadows (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO gradients or shading effects?\n8. Does it look like a flat die-cut sticker (2D, not 3D)?\n9. Is it simple and readable at small sizes?\n10. CRITICAL: Check for 'grounding' - does the icon have a shadow underneath, platform, or look like it's sitting on a surface? If YES, this is a FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
-      "qualityChecklist": [
-        "Clearly points UPWARD (will be rotated for other directions)",
-        "CENTERED in the frame with equal padding on all sides",
-        "Solid black on white background (for clean rembg + threshold conversion)",
-        "Simple, bold design (readable at 64x64 pixels)",
-        "Flat 2D die-cut sticker style (no 3D, no grounding)",
-        "No shadows, gradients, or depth effects"
-      ]
+      "metadata": {
+        "usage": "Displayed on block faces to indicate pull direction (tinted by Babylon.js)",
+        "notes": "Tinted with arrowColor from palette"
+      }
     },
     "background": {
-      "filename": "background.jpg",
-      "dimensions": { "width": 768, "height": 1344 },
-      "format": "JPEG",
-      "sizeTarget": "100KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "9:16",
-        "output_format": "jpg"
+      "output": {
+        "filename": "background.jpg",
+        "dimensions": { "width": 768, "height": 1344 },
+        "format": "JPEG",
+        "sizeTarget": "100KB"
       },
-      "critical": "Non-distracting, suitable for UI overlay",
-      "usage": "Full-screen background behind the 3D scene and UI",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "9:16",
+          "output_format": "jpg"
+        },
+        "promptTemplate": "Blurred atmospheric background. Soft, out-of-focus environment. Non-distracting. Suitable for UI overlay. Distant, hazy elements are ok but must be heavily blurred. No sharp details, no focal points.\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: sharp focus, detailed foreground, busy patterns, centered objects, focal points, text, UI elements, characters, clear architecture, readable details, high contrast elements",
+        "styleReference": {
+          "asset": "block-texture",
+          "imageStrength": 0.7,
+          "rationale": "Ensures background atmosphere matches material style"
+        }
+      },
+      "validation": {
+        "critical": [
+          "Non-distracting, suitable for UI overlay"
+        ],
+        "visionCritiquePrompt": "Analyze this background image for a puzzle game:\n1. Is it non-distracting (could you comfortably place UI and game elements on top)?\n2. Does it match the \"{THEME_NAME}\" theme?\n3. Are there any focal points that would compete for attention?\n4. Is the color palette appropriate?\n\nRespond with PASS or FAIL and specific reasons.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact"
+        }
+      },
       "postProcessing": [
-        "Resize to exact dimensions (cover-crop, no stretching)",
-        "JPEG compression (quality 85%)"
+        {
+          "type": "resize",
+          "strategy": "cover-crop",
+          "dimensions": [768, 1344]
+        },
+        {
+          "type": "compress",
+          "format": "jpg",
+          "quality": 85,
+          "fallbackQuality": 70
+        }
       ],
-      "styleReference": {
-        "asset": "block-texture",
-        "promptStrength": 0.7,
-        "rationale": "Ensures background atmosphere matches material style"
-      },
-      "promptTemplate": "Create an atmospheric background for a puzzle game.\n\nREQUIREMENTS:\n- Non-distracting, simple gradient or blur\n- Flat, minimal style\n- Portrait orientation 768x1344\n\nSTYLE: {THEME_DESCRIPTION}\n\nNEGATIVE PROMPT: detailed foreground, busy patterns, complex elements, photorealistic, text, UI elements, characters",
-      "critiquePrompt": "Analyze this background image for a puzzle game:\n1. Is it non-distracting (could you comfortably place UI and game elements on top)?\n2. Does it match the \"{THEME_NAME}\" theme?\n3. Are there any focal points that would compete for attention?\n4. Is the color palette appropriate?\n\nRespond with PASS or FAIL and specific reasons.",
-      "qualityChecklist": [
-        "Non-distracting (blurred, gradient, or atmospheric)",
-        "Appropriate color palette matches theme",
-        "No focal points that compete with game elements",
-        "UI text and icons remain readable when overlaid",
-        "Matches theme aesthetic"
-      ]
+      "metadata": {
+        "usage": "Full-screen background behind 3D scene and UI",
+        "notes": "Must not distract from gameplay or make UI unreadable"
+      }
     },
     "lock-overlay": {
-      "filename": "lock-overlay.png",
-      "dimensions": { "width": 512, "height": 512 },
-      "format": "PNG",
-      "sizeTarget": "50KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "1:1",
-        "output_format": "png"
+      "output": {
+        "filename": "lock-overlay.png",
+        "dimensions": { "width": 512, "height": 512 },
+        "format": "PNG",
+        "sizeTarget": "100KB"
       },
-      "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED, LARGE and PROMINENT",
-      "usage": "Overlaid on locked blocks to indicate they cannot be removed",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "1:1",
+          "output_format": "png"
+        },
+        "promptTemplate": "{THEME_NAME} styled padlock icon. LARGE filling 75-85% of the frame edge-to-edge. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The padlock should nearly touch all edges of the frame.",
+        "styleReference": {
+          "asset": "block-texture",
+          "imageStrength": 0.7,
+          "rationale": "Ensures overlay material matches block material style"
+        }
+      },
+      "validation": {
+        "critical": [
+          "Clear 'locked' symbolism",
+          "FULLY transparent background (no white inside)",
+          "CENTERED in frame",
+          "LARGE and PROMINENT (75-85% of frame)"
+        ],
+        "visionCritiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. CRITICAL SIZE CHECK: Does the icon fill at least 80-90% of the frame? Is the padlock LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n5. Is it MINIMAL (just the lock icon floating, no environmental elements, circuit boards, chains, or busy backgrounds)?\n6. Are there NO shadows (no ground shadows, drop shadows, cast shadows, or 3D depth)?\n7. Are there NO platforms, pedestals, or base elements underneath the lock?\n8. Are there NO decorative extensions (circuit lines, wires, cables) coming out of the lock?\n9. Does it match the \"{THEME_NAME}\" theme?\n10. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining, ANY shadows, or if the SIZE is too small with excessive padding.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact",
+          "transparency": true
+        }
+      },
       "postProcessing": [
-        "Background removal (cjwbw/rembg)",
-        "White color removal (threshold 240)",
-        "Alpha erosion (2px)",
-        "Resize to exact dimensions (contain-centered, no additional centering step)",
-        "PNG compression (level 9)"
+        {
+          "type": "remove-background",
+          "method": "replicate-model",
+          "model": "cjwbw/rembg"
+        },
+        {
+          "type": "remove-white",
+          "threshold": 240
+        },
+        {
+          "type": "erode-alpha",
+          "pixels": 2
+        },
+        {
+          "type": "resize",
+          "strategy": "contain-centered",
+          "dimensions": [512, 512]
+        },
+        {
+          "type": "compress",
+          "format": "png",
+          "level": 9
+        }
       ],
-      "styleReference": {
-        "asset": "block-texture",
-        "promptStrength": 0.7,
-        "rationale": "Ensures overlay material matches block material style"
-      },
-      "promptTemplate": "{THEME_NAME} styled padlock icon. EXTREMELY LARGE filling 85-90% of the frame edge-to-edge. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The padlock should nearly touch all edges of the frame.",
-      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. CRITICAL SIZE CHECK: Does the icon fill at least 80-90% of the frame? Is the padlock LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n5. Is it MINIMAL (just the lock icon floating, no environmental elements, circuit boards, chains, or busy backgrounds)?\n6. Are there NO shadows (no ground shadows, drop shadows, cast shadows, or 3D depth)?\n7. Are there NO platforms, pedestals, or base elements underneath the lock?\n8. Are there NO decorative extensions (circuit lines, wires, cables) coming out of the lock?\n9. Does it match the \"{THEME_NAME}\" theme?\n10. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining, ANY shadows, or if the SIZE is too small with excessive padding.",
-      "qualityChecklist": [
-        "Immediately recognizable as lock/chain/barrier",
-        "FULLY transparent background (no white halos or fills)",
-        "NO white or near-white colors inside the icon",
-        "CENTERED in the frame",
-        "LARGE SIZE: Fills 80-90% of frame with minimal white space",
-        "Visible when overlaid on various block textures",
-        "Matches theme aesthetic",
-        "Sufficient contrast with block materials"
-      ]
+      "metadata": {
+        "usage": "Overlaid on locked blocks to indicate they cannot be removed",
+        "notes": "Must be visible against various block textures"
+      }
     },
     "currency-icon": {
-      "filename": "currency-icon.png",
-      "dimensions": { "width": 128, "height": 128 },
-      "format": "PNG",
-      "sizeTarget": "20KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "1:1",
-        "output_format": "png"
+      "output": {
+        "filename": "currency-icon.png",
+        "dimensions": { "width": 128, "height": 128 },
+        "format": "PNG",
+        "sizeTarget": "20KB"
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, flat vector style, LARGE and PROMINENT",
-      "usage": "Coin/currency indicator in header",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "1:1",
+          "output_format": "png"
+        },
+        "promptTemplate": "{THEME_NAME} styled money bills icon. EXTREMELY LARGE filling 90-95% of the frame edge-to-edge. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The bills should nearly touch all edges of the frame.",
+        "styleReference": null
+      },
+      "validation": {
+        "critical": [
+          "Simple, iconic, readable at small sizes",
+          "CENTERED in frame",
+          "LARGE and PROMINENT (90-95% of frame)",
+          "Flat 2D vector style (no 3D, no grounding)"
+        ],
+        "visionCritiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. CRITICAL SIZE CHECK: Does the icon fill at least 85-90% of the frame? Are the bills LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n4. Is it on a solid white background (not transparent, not checkerboard)?\n5. Is it a flat 2D vector style (die-cut sticker aesthetic)?\n6. Are there NO shadows of any kind (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO environmental elements (no scene, bokeh, platform)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is the currency symbolism clear?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons. SIZE is critical - small icons with excessive padding are a FAIL.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact",
+          "transparency": true
+        }
+      },
       "postProcessing": [
-        "Background removal (cjwbw/rembg)",
-        "Alpha erosion (1px)",
-        "Center in frame (contain-centered, padding: 0.03)",
-        "Resize to exact dimensions",
-        "PNG compression (level 9)"
+        {
+          "type": "remove-background",
+          "method": "replicate-model",
+          "model": "cjwbw/rembg"
+        },
+        {
+          "type": "erode-alpha",
+          "pixels": 1
+        },
+        {
+          "type": "center",
+          "strategy": "contain-centered",
+          "padding": 0
+        },
+        {
+          "type": "resize",
+          "dimensions": [128, 128],
+          "method": "LANCZOS"
+        },
+        {
+          "type": "compress",
+          "format": "png",
+          "level": 9
+        }
       ],
-      "styleReference": null,
-      "promptTemplate": "{THEME_NAME} styled money bills icon. EXTREMELY LARGE filling 90-95% of the frame edge-to-edge. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The bills should nearly touch all edges of the frame.",
-      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. CRITICAL SIZE CHECK: Does the icon fill at least 85-90% of the frame? Are the bills LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n4. Is it on a solid white background (not transparent, not checkerboard)?\n5. Is it a flat 2D vector style (die-cut sticker aesthetic)?\n6. Are there NO shadows of any kind (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO environmental elements (no scene, bokeh, platform)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is the currency symbolism clear?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons. SIZE is critical - small icons with excessive padding are a FAIL.",
-      "qualityChecklist": [
-        "Simple, iconic design (readable at small sizes)",
-        "CENTERED in the frame",
-        "LARGE SIZE: Fills 85-95% of frame with minimal white space",
-        "Solid white background (for clean rembg processing)",
-        "Flat 2D vector style (no 3D, no grounding)",
-        "Matches theme aesthetic",
-        "Clear currency symbolism"
-      ]
+      "metadata": {
+        "usage": "Coin/currency indicator in header",
+        "notes": "Displayed at small size in UI"
+      }
     },
     "logo": {
-      "filename": "logo.png",
-      "dimensions": { "width": 128, "height": 128 },
-      "format": "PNG",
-      "sizeTarget": "20KB",
-      "model": "google/nano-banana",
-      "modelVersion": "google/nano-banana",
-      "modelParameters": {
-        "aspect_ratio": "1:1",
-        "output_format": "png"
+      "output": {
+        "filename": "logo.png",
+        "dimensions": { "width": 128, "height": 128 },
+        "format": "PNG",
+        "sizeTarget": "20KB"
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, based on reference logo, flat style",
-      "usage": "Game logo/branding (favicon)",
+      "generation": {
+        "model": "google/nano-banana",
+        "parameters": {
+          "aspect_ratio": "1:1",
+          "output_format": "png"
+        },
+        "promptTemplate": "{THEME_NAME} styled cube with arrows logo icon. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered.",
+        "styleReference": {
+          "asset": "reference-logo",
+          "imageStrength": 0.6,
+          "rationale": "Maintain recognizable logo structure while adapting theme aesthetics"
+        }
+      },
+      "validation": {
+        "critical": [
+          "Simple, iconic, readable at small sizes",
+          "CENTERED in frame",
+          "Based on reference logo (cube + arrows)",
+          "Flat vector style (no photorealistic 3D, no grounding)"
+        ],
+        "visionCritiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Does the cube appear to float (no ground, platform, or base underneath)?\n5. Are there NO shadows of any kind (no ground shadows, drop shadows, reflections)?\n6. Is it a flat vector style (not a photorealistic 3D render)?\n7. Does it maintain recognizable elements from the reference logo (cube + arrows)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is it memorable and distinctive?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
+        "technicalChecks": {
+          "dimensions": "exact",
+          "fileSize": "max",
+          "format": "exact",
+          "transparency": true
+        }
+      },
       "postProcessing": [
-        "Background removal (cjwbw/rembg)",
-        "Alpha erosion (1px)",
-        "Center in frame (contain-centered)",
-        "Resize to exact dimensions",
-        "PNG compression (level 9)"
+        {
+          "type": "remove-background",
+          "method": "replicate-model",
+          "model": "cjwbw/rembg"
+        },
+        {
+          "type": "erode-alpha",
+          "pixels": 1
+        },
+        {
+          "type": "center",
+          "strategy": "contain-centered",
+          "padding": 0
+        },
+        {
+          "type": "resize",
+          "dimensions": [128, 128],
+          "method": "LANCZOS"
+        },
+        {
+          "type": "compress",
+          "format": "png",
+          "level": 9
+        }
       ],
-      "styleReference": {
-        "asset": "reference-logo",
-        "promptStrength": 0.6,
-        "rationale": "Maintain recognizable logo structure while adapting theme aesthetics"
-      },
-      "promptTemplate": "{THEME_NAME} styled cube with arrows logo icon. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered.",
-      "critiquePrompt": "Analyze this logo icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Does the cube appear to float (no ground, platform, or base underneath)?\n5. Are there NO shadows of any kind (no ground shadows, drop shadows, reflections)?\n6. Is it a flat vector style (not a photorealistic 3D render)?\n7. Does it maintain recognizable elements from the reference logo (cube + arrows)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is it memorable and distinctive?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
-      "qualityChecklist": [
-        "Simple, iconic design (readable at small sizes)",
-        "CENTERED in the frame",
-        "Solid white background (for clean rembg processing)",
-        "Flat vector style (no photorealistic 3D, no grounding)",
-        "Recognizable logo elements (cube + arrows)",
-        "Matches theme aesthetic"
-      ]
+      "metadata": {
+        "usage": "Game logo/branding (favicon)",
+        "notes": "Should maintain brand recognition across themes"
+      }
     }
   },
   "palette": {
@@ -241,7 +406,7 @@
     "visionBased": true,
     "schema": {
       "name": "string (theme name)",
-      "version": "string (1.0.0)",
+      "version": "string (1.1.0)",
       "babylon": {
         "blockDefault": "number[3] (RGB normalized 0-1)",
         "arrowColor": "number[3] (RGB normalized 0-1) - MUST contrast with block texture",
@@ -258,11 +423,11 @@
         "currencyPill": "string (hex color) - pill background in overlay",
         "bgBlue": "string (hex color) - primary UI accent",
         "darkBlue": "string (hex color) - dark UI variant",
-        "accent": "string (hex color) - overlay border and highlights (theme-specific, e.g., gold, pink, cyan)",
+        "accent": "string (hex color) - overlay border and highlights (theme-specific: cyberpunk=pink/cyan, medieval=gold, nature=green)",
         "accentDark": "string (hex color) - darker variant of accent",
-        "buttonPrimary": "string (hex color) - primary button color (e.g., green for success)",
+        "buttonPrimary": "string (hex color) - primary button color",
         "buttonPrimaryDark": "string (hex color) - primary button dark variant",
-        "buttonSecondary": "string (hex color) - secondary button color (can match primary or be different)",
+        "buttonSecondary": "string (hex color) - secondary button color",
         "buttonSecondaryDark": "string (hex color) - secondary button dark variant"
       }
     },
@@ -278,14 +443,6 @@
       }
     }
   },
-  "commonAssets": {
-    "_comment": "Theme-independent assets shared across all themes. These are NOT generated and should NOT be included in theme folders.",
-    "piggy-bank": {
-      "path": "public/assets/common/icons/piggy-bank.png",
-      "usage": "Victory screen icon - displayed with CSS filter: brightness(0) invert(1)",
-      "rationale": "Single common piggy bank silhouette used for all themes since it's CSS-inverted to solid white"
-    }
-  },
   "workflow": {
     "generationOrder": [
       "block-texture",
@@ -297,6 +454,28 @@
     ],
     "heroAsset": "block-texture",
     "maxIterations": 3,
+    "onMaxIterationsReached": {
+      "action": "manual-review",
+      "notification": "console",
+      "message": "Asset {assetType} failed validation after {maxIterations} attempts. Please review manually.",
+      "continueWorkflow": false
+    },
+    "onPostProcessingFailure": {
+      "action": "retry-with-fallback-params",
+      "maxRetries": 2,
+      "fallbackParams": {
+        "jpegQuality": 70,
+        "alphaErosion": 2
+      }
+    },
+    "onSizeExceeded": {
+      "action": "auto-compress",
+      "compressionSteps": [
+        { "jpegQuality": 75 },
+        { "jpegQuality": 65 },
+        { "jpegQuality": 55 }
+      ]
+    },
     "validation": {
       "fileSize": true,
       "dimensions": true,
@@ -314,22 +493,7 @@
   "dependencies": {
     "replicateMCP": {
       "required": true,
-      "configFile": ".mcp.json"
-    },
-    "postProcessingScript": {
-      "required": false,
-      "scriptPath": ".skills/tech-artist-generate-asset/post-process.py",
-      "fallback": "Use Pillow library directly"
-    },
-    "resizeHelper": {
-      "required": true,
-      "scriptPath": ".skills/tech-artist-generate-asset/image-resize-helper.py",
-      "fallback": "Use Pillow library with manual resize commands"
-    },
-    "colorExtractionScript": {
-      "required": false,
-      "scriptPath": ".skills/tech-artist-reskin/extract-colors.py",
-      "fallback": "Use vision-based extraction"
+      "configFile": [".mcp.json"]
     }
   }
 }

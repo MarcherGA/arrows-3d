@@ -66,8 +66,7 @@ Uses `.asset-gen-config.json` from project root:
   },
   "palette": {
     "filename": "palette.json",
-    "visionBased": true,
-    "extractionStrategy": { /* vision prompts */ }
+    "visionBased": true
   }
 }
 ```
@@ -159,9 +158,9 @@ done
 - `cover-crop`: Resize to cover, crop excess from center (textures/backgrounds)
 - `stretch`: Resize to exact dimensions (not recommended, may distort)
 
-### Phase 3.5: Post-Processing Validation (CRITICAL - NEW)
+### Phase 3.5: Post-Processing Validation (CRITICAL)
 
-**IMPORTANT:** After EACH post-processing operation, use Claude vision to validate that the asset still meets all requirements. Do NOT assume external scripts succeeded without visual confirmation.
+**IMPORTANT:** After EACH post-processing operation, Claude Code will use vision to validate that the asset still meets all requirements. Do NOT assume external scripts succeeded without visual confirmation.
 
 ```typescript
 // After each post-processing step (background removal, resize, erosion, etc.)
@@ -490,5 +489,5 @@ if (bundleSize > maxSize) {
 
 ---
 
-**Version:** 2.1.0 (Enhanced Post-Processing)
-**Updated:** 2026-01-08
+**Version:** 1.0.0
+**Updated:** 2026-01-10
