@@ -126,6 +126,46 @@ Tested multiple models via Replicate MCP:
 
 **Build size:** 732KB (target: <5MB) ✅
 
+## Design Reasoning
+
+### Why These Skills?
+
+**Two-Skill Architecture:**
+1. `/reskin` - Full theme generation workflow
+2. `/generate-asset` - Single asset regeneration utility
+
+**Why Not One Combined Skill?**
+- `/reskin` handles the complete workflow (6 assets + palette)
+- `/generate-asset` provides surgical fixes without regenerating everything
+- Separation keeps each skill focused and maintainable
+
+**Why Not More Granular Skills?**
+- Initially considered separate skills for generation, post-processing, and validation
+- Realized this would fragment the workflow and require complex state management
+- Monolithic `/reskin` is more token-efficient (loads config/prompts once, not 6 times)
+
+### Why This Structure?
+
+**Config-Driven Over Code-Driven:**
+- [.asset-gen-config.json](.asset-gen-config.json) defines all asset specs, prompts, and validation rules
+- Changing themes requires editing JSON, not code
+- Skills remain project-agnostic and reusable
+
+**Vision-Based Validation:**
+- Claude's vision model provides semantic validation (not just pixel checks)
+- Catches issues like "non-seamless texture" or "white halos" that scripts miss
+- Post-processing validation ensures Python operations succeeded
+
+**Hero Asset Strategy:**
+- Generate `block-texture` first, use it as style reference for other assets
+- Ensures visual coherence across all generated assets
+- Config's `workflow.generationOrder` array enforces this sequence
+
+**MCP Over Custom API Calls:**
+- Replicate MCP server handles both image generation and background removal
+- No need to write custom API integration code
+- Claude Code orchestrates everything through MCP tools
+
 ## Testing the Game
 
 ```bash
