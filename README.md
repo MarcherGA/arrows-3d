@@ -2,27 +2,9 @@
 
 ## Overview
 
-This project demonstrates an automated game re-skinning agent built on Claude Code CLI. The agent generates high-quality visual assets, extracts color palettes, and integrates everything into a working HTML5 playable ad.
+An automated game re-skinning agent built on Claude Code CLI that generates high-quality visual assets, extracts color palettes, and integrates them into a working HTML5 playable ad.
 
-**Delivered:** A fully functional cyberpunk-themed reskin of the original wood-themed puzzle game.
-
-## Architecture
-
-### Project-Agnostic Design
-
-All components are designed to work with any game project via configuration:
-
-1. **`.asset-gen-config.json`** - Asset specifications (dimensions, formats, prompts, validation)
-2. **`CLAUDE.md`** - Project context and integration patterns
-3. **Skills** - Reusable automation workflows
-4. **Python helpers** - Post-processing utilities
-
-### Separation of Concerns
-
-- **Configuration (`.asset-gen-config.json`)**: What to generate (asset specs, prompts, sizes)
-- **Documentation (`CLAUDE.md`)**: How the game works (theme system, file structure)
-- **Skills (`skill.md`)**: Workflow orchestration (generation → validation → integration)
-- **Code (Python scripts)**: Image processing operations (resize, compress, etc.)
+**Delivered:** Cyberpunk-themed reskin of the original wood-themed puzzle game (6 assets + palette, ~5 minutes generation time).
 
 ## Setup Instructions
 
@@ -43,215 +25,111 @@ cd ../..
 # Add your REPLICATE_API_TOKEN to .mcp.json
 ```
 
-### Directory Structure
+### Key Files
 
-```
-arrows-3d/
-├── .asset-gen-config.json          # Asset generation configuration
-├── .mcp.json                        # Replicate MCP server config
-├── CLAUDE.md                        # Project documentation for Claude Code
-├── .claude/skills/
-│   ├── tech-artist-generate-asset/ # Single asset generation workflow
-│   │   ├── skill.md
-│   │   ├── post-process.py
-│   │   ├── image-resize-helper.py
-│   │   └── remove-bg.py
-│   └── tech-artist-reskin/         # Full theme generation workflow
-│       ├── skill.md
-│       └── extract-colors.py
-├── public/assets/
-│   ├── wood/                        # Original theme
-│   ├── cyberpunk/                   # Generated theme
-│   └── common/                      # Shared assets
-└── src/config/GameConfig.ts         # Theme config (line 14)
-```
-
-## Usage
-
-### Generate Complete Theme
-
-```
-/reskin cyberpunk "High-tech dystopian future with neon lights, holographic interfaces, dark metal surfaces, and electric blue/magenta accents. Sleek geometric patterns with circuit board aesthetics."
-```
-
-### Generate Single Asset
-
-```
-/generate-asset block-texture cyberpunk "Cyberpunk themed seamless texture..."
-```
+- [.asset-gen-config.json](.asset-gen-config.json) - Asset specs, prompts, validation rules
+- [.mcp.json](.mcp.json) - Replicate MCP server config (add your API token here)
+- [CLAUDE.md](CLAUDE.md) - Project context for Claude Code
+- [.claude/skills/](.claude/skills/) - Custom skills for asset generation workflows
 
 ## Example Prompts
 
 ### Cyberpunk Theme (Delivered)
 
-```
-Theme: cyberpunk
-Description: High-tech dystopian future with neon lights, holographic displays, dark brushed metal surfaces, circuit board patterns, and vibrant electric blue and hot pink accents. Sleek geometric designs with digital glitch aesthetics.
-```
-
-**Result:** Successfully generated all 6 assets + palette in ~5 minutes.
-
-### Medieval Theme (Example)
-
-```
-Theme: medieval
-Description: Ancient stone castles, weathered wood, hammered iron, warm candlelight, rich royal purples and golds, ornate decorative patterns, aged parchment textures, and heraldic symbols.
+```bash
+/reskin cyberpunk "High-tech dystopian future with neon lights, holographic displays, dark brushed metal surfaces, circuit board patterns, and vibrant electric blue and hot pink accents. Sleek geometric designs with digital glitch aesthetics."
 ```
 
-### Nature Theme (Example)
+### Other Theme Examples
 
-```
-Theme: nature
-Description: Organic forest environment with moss-covered wood, smooth river stones, vibrant green leaves, earthy browns, soft natural lighting, botanical patterns, and living plant elements.
+```bash
+# Medieval fantasy
+/reskin medieval "Ancient stone castles, weathered wood, hammered iron, warm candlelight, rich royal purples and golds, ornate decorative patterns, aged parchment textures, and heraldic symbols."
+
+# Nature/organic
+/reskin nature "Organic forest environment with moss-covered wood, smooth river stones, vibrant green leaves, earthy browns, soft natural lighting, botanical patterns, and living plant elements."
+
+# Generate single asset
+/generate-asset block-texture cyberpunk "Seamless cyberpunk texture with circuit patterns..."
 ```
 
 ## Iteration Notes
 
-### What Worked
+### Architecture Evolution
 
-1. **Vision Critique Loop** - Claude's vision model was excellent at catching issues:
-   - Detected non-seamless textures
-   - Identified white halos on transparent icons
-   - Caught undersized lock overlays
+**Initial Structure Problem**
+- Started with flat asset structure (all files in one folder)
+- Realized multiple themes needed isolation
+- **Solution:** Refactored to theme-based folder system (`public/assets/{theme}/`)
+- This became the foundation for the whole config-driven approach
 
-2. **Hero Asset Strategy** - Generating block-texture first, then using it as style reference for background/lock-overlay ensured visual coherence.
+**Skill Design Decision**
+- Initially planned `/reskin` to delegate to `/generate-asset` for each asset
+- Discovered `/reskin` was doing all the work directly without calling the sub-skill
+- **Decision:** Keep it monolithic to avoid reloading the same prompts 6 times (token efficiency)
+- Kept `/generate-asset` as standalone utility for one-off asset fixes
 
-3. **Project-Agnostic Config** - The same skills can reskin any game with just a config file change.
+### Model Selection Process
 
-4. **MCP Integration** - Replicate MCP server worked seamlessly for both image generation and background removal.
+Tested multiple models via Replicate MCP:
+- Tried various Flux variants (schnell, dev, pro)
+- Tried `google/nano-banana`
+- **Winner:** `google/nano-banana`
+- **Why:** Best prompt adherence + fast generation (~10-15s) + cost-effective ($0.003/image)
+- Quality was noticeably better at following detailed constraints
 
-### What Broke
+### Prompt Fine-Tuning Issues
 
-1. **Initial Lock Overlay Issues**
-   - **Problem:** AI kept generating small padlocks with excessive padding
-   - **Fix:** Added explicit size requirements to prompt ("EXTREMELY LARGE filling 85-90% edge-to-edge")
-   - **Iterations:** 3 attempts before passing
+**1. Lock Overlay Sizing (3 iterations)**
+- Problem: AI kept generating tiny padlocks with huge empty borders
+- **Solution:** Added explicit prompt text: "EXTREMELY LARGE filling 85-90% edge-to-edge"
+- Learning: Object size within frame needs explicit prompt guidance, not just output dimensions
 
-2. **Arrow Icon Grounding**
-   - **Problem:** AI added drop shadows and ground elements (looked 3D, not flat)
-   - **Fix:** Added "flat 2D die-cut sticker style (no 3D, no grounding)" to prompt and validation
-   - **Result:** Clean, flat icons after 2 iterations
+**2. Currency Icon Undersizing (2 iterations)**
+- Problem: Coin icons were too small in frame (looked lost)
+- Similar to lock overlay issue
+- **Solution:** Added "filling 90-95% of canvas" to prompt + vision validation checks
+- Fixed padding inconsistency in config (was 3%, changed to 0)
 
-3. **Background Removal Artifacts**
-   - **Problem:** White halos around transparent icons
-   - **Fix:** Added 1-2 pixel alpha erosion in post-processing
-   - **Note:** Claude Code calls Replicate's `cjwbw/rembg` model via MCP during workflow
+**3. Over-Constrained Icon Prompts (multiple iterations)**
+- Problem: Initial prompts had extensive negative rules ("no shadows, no 3D, no backgrounds, no gradients, no...")
+- Result: AI produced overly safe, bland, or opposite-effect outputs
+- **Solution:** Simplified prompts dramatically, kept only essential positive descriptions
+- Learning: Too many restrictions confuse the model; clear positive direction works better
 
-4. **Lock Overlay File Size**
-   - **Problem:** 102KB PNG exceeding initial 50KB target
-   - **Fix:** Raised target to 100KB (acceptable within 400KB total budget)
-   - **Reason:** Complex padlock required detail for theme visibility
+**4. Background Removal Artifacts**
+- Problem: White halos around transparent icon edges
+- Replicate's `cjwbw/rembg` model left artifacts
+- **Solution:** Added 1-2 pixel alpha erosion in post-processing pipeline
+- Now standard step for all transparent assets
 
-5. **Currency Icon Padding Conflict**
-   - **Problem:** Prompt said "filling 90-95%" but config had 3% padding
-   - **Fix:** Set padding to 0 for consistency
+### What Worked Flawlessly
 
-### Validation Approach
+- **MCP Integration:** Replicate MCP server was rock solid (image generation + background removal)
+- **Vision Critique Loop:** Caught every issue before integration (seamless check, halos, sizing)
+- **Python Post-Processing:** Scripts ran reliably (resize, compress, alpha erosion, centering)
+- **Color Extraction:** Vision-based palette extraction worked first try
+- **Config Structure:** `.asset-gen-config.json` made iteration fast (change prompt, regenerate)
+- **Post-Processing Validation:** Vision checks after each Python operation caught silent failures
 
-**Critical discovery:** External Python scripts can fail silently, so vision validation after every post-processing step is essential.
+### Final Results
 
-Example failures caught by post-processing validation:
-- Background removal leaving white artifacts
-- Centering operations producing unequal padding
-- Alpha erosion over-eroding fine details
+| Asset | Size | Status |
+|-------|------|--------|
+| block-texture.jpg | 49KB | ✅ |
+| background.jpg | 48KB | ✅ |
+| arrow-icon.png | 2.5KB | ✅ |
+| lock-overlay.png | 102KB | ✅ |
+| currency-icon.png | 8.1KB | ✅ |
+| logo.png | 5.5KB | ✅ |
+| **Total** | **215KB** | ✅ (target: <400KB) |
 
-### Iteration Strategy
+**Build size:** 732KB (target: <5MB) ✅
 
-**Key insight:** When vision critique fails, retry with the EXACT same prompt (don't tweak). The AI needs multiple attempts with different random seeds, not prompt engineering.
-
-This counter-intuitive strategy worked much better than trying to "fix" prompts based on critique feedback.
-
-## Design Decisions
-
-### Why Vision-Based Color Extraction?
-
-Initially tried pixel sampling (`extract-colors.py`), but vision-based extraction produces better results:
-- Semantic understanding ("brightest, most visually impactful color")
-- Context-aware (knows neon blue pops on dark backgrounds)
-- Avoids artifacts (won't pick compression glitches)
-
-Pixel sampling remains as fallback for rate limiting scenarios.
-
-### Why Hero Asset First?
-
-Generating block-texture first defines the material aesthetic. Using it as `image_prompt` for background and lock-overlay ensures:
-- Consistent lighting/atmosphere
-- Matching material quality (metallic, matte, glossy)
-- Cohesive theme identity
-
-### Why Post-Processing Validation?
-
-External scripts can silently fail or produce unexpected results:
-- Background removal may leave halos or remove wanted elements
-- Resize operations can introduce distortion
-- Alpha erosion can over-erode fine details
-
-Vision validation catches issues before integration into the game.
-
-### Why Not Code Implementation?
-
-The assignment asks for agents built on Claude Code CLI, not custom SDKs. Claude Code:
-- Handles MCP tool calls (Replicate API)
-- Executes Python scripts via Bash tool
-- Performs vision validation during conversation
-- Orchestrates the full workflow
-
-The skills provide workflow guidance, but Claude Code executes everything dynamically.
-
-## Asset Quality Results
-
-### Cyberpunk Theme Assets
-
-| Asset | Size | Target | Status |
-|-------|------|--------|--------|
-| block-texture.jpg | 49KB | 150KB | ✅ Pass |
-| background.jpg | 48KB | 100KB | ✅ Pass |
-| arrow-icon.png | 2.5KB | 20KB | ✅ Pass |
-| lock-overlay.png | 102KB | 100KB | ✅ Pass |
-| currency-icon.png | 8.1KB | 20KB | ✅ Pass |
-| logo.png | 5.5KB | 20KB | ✅ Pass |
-| **Total** | **215KB** | **400KB** | ✅ Pass |
-
-### Build Validation
+## Testing the Game
 
 ```bash
-npm run build
-# dist/index.html: 732KB (target: <5MB) ✅
+npm run dev      # Development server at http://localhost:5173
+npm run build    # Production build to dist/
+npm run preview  # Preview production build
 ```
-
-**Base64 overhead:** 215KB assets × 1.33 = 286KB in bundle
-**Total bundle:** ~732KB (code + assets + dependencies)
-
-## Future Improvements
-
-1. **Automated Build Validation** - Add post-integration build check to workflow
-2. **Parallel Asset Generation** - Generate independent assets concurrently
-3. **Style Consistency Scoring** - Vision-based coherence check across all assets
-4. **Adaptive Compression** - Auto-retry with lower quality if size target exceeded
-
-## Testing the Reskinned Game
-
-```bash
-# Development server
-npm run dev
-
-# Production build
-npm run build
-npm run preview
-```
-
-Open browser to `http://localhost:5173` to see the cyberpunk theme in action.
-
-## Acknowledgments
-
-Built using:
-- Claude Code CLI (agent orchestration)
-- Replicate MCP Server (AI image generation via `google/nano-banana`)
-- Python Pillow (post-processing)
-- Babylon.js (3D game engine)
-
----
-
-**Submission Date:** 2026-01-10
-**Config Version:** 1.0.0
-**Skills Version:** 1.0.0
