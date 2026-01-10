@@ -1,0 +1,27 @@
+{
+  "name": "cyberpunk",
+  "version": "1.1.0",
+  "babylon": {
+    "blockDefault": [0.157, 0.196, 0.255],
+    "arrowColor": [0.0, 0.824, 1.0],
+    "keyArrowColor": [0.05, 0.05, 0.1],
+    "lockedArrowColor": [0.471, 0.549, 0.627],
+    "background": [0.098, 0.118, 0.157, 1.0],
+    "keyColor": [0.0, 0.824, 1.0],
+    "keyEmissive": [0.0, 1.0, 1.0],
+    "lockedColor": [0.235, 0.255, 0.294]
+  },
+  "css": {
+    "headerBg": "#1a1f28",
+    "currencyContainer": "#14181f",
+    "currencyPill": "#0f1318",
+    "bgBlue": "#2a3f5f",
+    "darkBlue": "#1a2a3f",
+    "accent": "#ff00ff",
+    "accentDark": "#cc00cc",
+    "buttonPrimary": "#00d2ff",
+    "buttonPrimaryDark": "#009fcc",
+    "buttonSecondary": "#ff00ff",
+    "buttonSecondaryDark": "#cc00cc"
+  }
+}

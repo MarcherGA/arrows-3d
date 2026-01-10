@@ -11,7 +11,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
  */
 export const THEME_CONFIG = {
   /** Current active theme */
-  CURRENT_THEME: 'wood',
+  CURRENT_THEME: 'cyberpunk',
   /** Fallback theme if current fails to load */
   FALLBACK_THEME: 'wood',
   /** Base path for theme assets */
