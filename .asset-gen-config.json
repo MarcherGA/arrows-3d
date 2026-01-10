@@ -139,14 +139,13 @@
         "aspect_ratio": "1:1",
         "output_format": "png"
       },
-      "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED",
+      "critical": "Clear 'locked' symbolism, FULLY transparent background (no white inside), CENTERED, LARGE and PROMINENT",
       "usage": "Overlaid on locked blocks to indicate they cannot be removed",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "White color removal (threshold 240)",
         "Alpha erosion (2px)",
-        "Center in frame (contain-centered)",
-        "Resize to exact dimensions",
+        "Resize to exact dimensions (contain-centered, no additional centering step)",
         "PNG compression (level 9)"
       ],
       "styleReference": {
@@ -154,13 +153,14 @@
         "promptStrength": 0.7,
         "rationale": "Ensures overlay material matches block material style"
       },
-      "promptTemplate": "{THEME_NAME} styled padlock icon. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background.",
-      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. Is it MINIMAL (just the lock icon floating, no environmental elements, circuit boards, chains, or busy backgrounds)?\n5. Are there NO shadows (no ground shadows, drop shadows, cast shadows, or 3D depth)?\n6. Are there NO platforms, pedestals, or base elements underneath the lock?\n7. Are there NO decorative extensions (circuit lines, wires, cables) coming out of the lock?\n8. Does it match the \"{THEME_NAME}\" theme?\n9. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining, or ANY shadows.",
+      "promptTemplate": "{THEME_NAME} styled padlock icon. EXTREMELY LARGE filling 85-90% of the frame edge-to-edge. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The padlock should nearly touch all edges of the frame.",
+      "critiquePrompt": "Analyze this lock/chain overlay icon:\n1. Is the 'locked' symbolism immediately clear?\n2. Is the background FULLY transparent with NO white or light gray areas inside the icon?\n3. Is the icon CENTERED in the frame?\n4. CRITICAL SIZE CHECK: Does the icon fill at least 80-90% of the frame? Is the padlock LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n5. Is it MINIMAL (just the lock icon floating, no environmental elements, circuit boards, chains, or busy backgrounds)?\n6. Are there NO shadows (no ground shadows, drop shadows, cast shadows, or 3D depth)?\n7. Are there NO platforms, pedestals, or base elements underneath the lock?\n8. Are there NO decorative extensions (circuit lines, wires, cables) coming out of the lock?\n9. Does it match the \"{THEME_NAME}\" theme?\n10. Will it be visible when overlaid on various block textures?\n\nRespond with PASS or FAIL and specific reasons. FAIL if there is ANY white or near-white color remaining, ANY shadows, or if the SIZE is too small with excessive padding.",
       "qualityChecklist": [
         "Immediately recognizable as lock/chain/barrier",
         "FULLY transparent background (no white halos or fills)",
         "NO white or near-white colors inside the icon",
         "CENTERED in the frame",
+        "LARGE SIZE: Fills 80-90% of frame with minimal white space",
         "Visible when overlaid on various block textures",
         "Matches theme aesthetic",
         "Sufficient contrast with block materials"
@@ -177,21 +177,22 @@
         "aspect_ratio": "1:1",
         "output_format": "png"
       },
-      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, flat vector style",
+      "critical": "Simple, iconic, readable at small sizes, CENTERED in frame, flat vector style, LARGE and PROMINENT",
       "usage": "Coin/currency indicator in header",
       "postProcessing": [
         "Background removal (cjwbw/rembg)",
         "Alpha erosion (1px)",
-        "Center in frame (contain-centered)",
+        "Center in frame (contain-centered, padding: 0.03)",
         "Resize to exact dimensions",
         "PNG compression (level 9)"
       ],
       "styleReference": null,
-      "promptTemplate": "{THEME_NAME} styled money bills icon. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered.",
-      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. Is it on a solid white background (not transparent, not checkerboard)?\n4. Is it a flat 2D vector style (die-cut sticker aesthetic)?\n5. Are there NO shadows of any kind (no ground shadows, drop shadows, or 3D depth)?\n6. Are there NO environmental elements (no scene, bokeh, platform)?\n7. Does it match the \"{THEME_NAME}\" theme aesthetic?\n8. Is the currency symbolism clear?\n9. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons.",
+      "promptTemplate": "{THEME_NAME} styled money bills icon. EXTREMELY LARGE filling 90-95% of the frame edge-to-edge. Simple geometric shape. Solid colors. Sharp edges. Flat vector graphic. Minimal design. White background. Centered. The bills should nearly touch all edges of the frame.",
+      "critiquePrompt": "Analyze this currency icon:\n1. Is it simple and readable at small sizes?\n2. Is the icon CENTERED in the frame?\n3. CRITICAL SIZE CHECK: Does the icon fill at least 85-90% of the frame? Are the bills LARGE and PROMINENT, nearly touching the edges? If the icon is small with lots of white space around it, this is a FAIL.\n4. Is it on a solid white background (not transparent, not checkerboard)?\n5. Is it a flat 2D vector style (die-cut sticker aesthetic)?\n6. Are there NO shadows of any kind (no ground shadows, drop shadows, or 3D depth)?\n7. Are there NO environmental elements (no scene, bokeh, platform)?\n8. Does it match the \"{THEME_NAME}\" theme aesthetic?\n9. Is the currency symbolism clear?\n10. CRITICAL: Check for 'grounding' - does it look like it's sitting on a surface? If YES, FAIL.\n\nRespond with PASS or FAIL and specific reasons. SIZE is critical - small icons with excessive padding are a FAIL.",
       "qualityChecklist": [
         "Simple, iconic design (readable at small sizes)",
         "CENTERED in the frame",
+        "LARGE SIZE: Fills 85-95% of frame with minimal white space",
         "Solid white background (for clean rembg processing)",
         "Flat 2D vector style (no 3D, no grounding)",
         "Matches theme aesthetic",
